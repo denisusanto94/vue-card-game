@@ -113,7 +113,8 @@
 							<span style="font-size: 12px; text-align: center;">{{ card.label }}</span>
 						</div>
 				</div>
-					<div class="coverflow-indicators">
+					<!-- Coverflow indicators hidden -->
+					<!-- <div class="coverflow-indicators">
 						<span 
 						v-for="(card, idx) in unopened"
 						:key="card.id"
@@ -121,7 +122,7 @@
 							:class="{ active: idx === centerIndex }"
 							@click="centerIndex = idx"
 						></span>
-					</div>
+					</div> -->
 				</div>
 				<div class="empty" v-if="remaining === 0">Empty</div>
 			</div>
