@@ -52,31 +52,9 @@
 			</div>
 		</div>
 
-		<!-- Two stacks: left=unopened deck, right=opened pile -->
+		<!-- Single deck with carousel -->
 		<div class="stacks">
-			<!-- Opened Pile (top) -->
-			<div class="stack">
-				<div class="stack-info">
-					<span>Opened</span>
-					<span class="count">({{ opened.length }})</span>
-				</div>
-				<div class="stack-area">
-					<div
-						v-for="(card, idx) in opened"
-						:key="card.id"
-						class="card3d opened"
-						:style="cardStyle(idx)"
-					>
-						<div class="face back" :style="backStyle(card)">🂠</div>
-						<div class="face front" :style="frontStyle(card)">
-							<img v-if="card.image" class="front-img" :src="card.image" alt="card" />
-							<span class="front-label">{{ card.label }}</span>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<!-- Unopened Deck (bottom) -->
+			<!-- Deck with opened and unopened cards -->
 			<div class="stack coverflow-container">
 				<div class="stack-info">
 					<span>Deck</span>
@@ -97,7 +75,7 @@
 					<div class="carousel-track" :style="carouselTrackStyle">
 						<div
 							v-for="(card, idx) in visibleCards"
-							:key="card.id"
+						:key="card.id"
 							class="card3d carousel-card"
 							:class="{ 
 								opened: card.opened,
@@ -106,16 +84,16 @@
 								'is-right': isRightCard(idx)
 							}"
 							:style="carouselCardStyle(idx)"
-							@click.stop="isCenterCard(idx) ? openCard(card.originalIndex) : null"
+							@click.stop="isCenterCard(idx) && !card.opened ? openCard(idx) : null"
 							@mouseenter="isCenterCard(idx) ? null : showNonClickableFeedback()"
-						>
-							<div class="face back" :style="backStyle(card)">🂠</div>
-							<div class="face front" :style="frontStyle(card)">
-								<img v-if="card.image" class="front-img" :src="card.image" alt="card" />
-								<span class="front-label">{{ card.label }}</span>
-							</div>
+					>
+						<div class="face back" :style="backStyle(card)"></div>
+						<div class="face front" :style="frontStyle(card)">
+							<img v-if="card.image" class="front-img" :src="card.image" alt="card" />
+							<span v-if="!card.opened" class="front-label">{{ card.label }}</span>
 						</div>
 					</div>
+				</div>
 					<!-- Debug: show message if no visible cards -->
 					<div v-if="visibleCards.length === 0" style="color: #ff6b6b; padding: 20px; text-align: center;">
 						No visible cards! Total cards: {{ unopened.length }}
@@ -123,22 +101,22 @@
 						<button @click="loadLevel(currentLevel)" style="margin-top: 10px; padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
 							Reload Deck
 						</button>
-					</div>
-					
+			</div>
+
 					<!-- Fallback: show simple cards if carousel fails -->
 					<div v-if="visibleCards.length === 0 && unopened.length > 0" style="display: flex; gap: 10px; justify-content: center; align-items: center; min-height: 200px;">
 						<div 
 							v-for="card in unopened.slice(0, 3)" 
-							:key="card.id"
+						:key="card.id"
 							style="width: 120px; height: 168px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"
-						>
+					>
 							<span style="font-size: 12px; text-align: center;">{{ card.label }}</span>
 						</div>
-					</div>
+				</div>
 					<div class="coverflow-indicators">
 						<span 
-							v-for="(card, idx) in unopened" 
-							:key="card.id"
+						v-for="(card, idx) in unopened"
+						:key="card.id"
 							class="indicator"
 							:class="{ active: idx === centerIndex }"
 							@click="centerIndex = idx"
@@ -182,7 +160,6 @@ export default {
 	data() {
 		return {
 			unopened: [],
-			opened: [],
 			isOpening: false,
 			flipDurationMs: 520,
 			currentLevel: 1,
@@ -217,7 +194,7 @@ export default {
 		};
 	},
 	computed: {
-		remaining() { return this.unopened.length; },
+		remaining() { return this.unopened.filter(card => !card.opened).length; },
 		levels() { return [1,2,3,4]; },
 		appBackgroundStyle() {
 			const style = { minHeight: '100vh' };
@@ -237,42 +214,51 @@ export default {
 			return style;
 		},
 		visibleCards() {
-			// Show cards based on available cards
+			// Show all cards in carousel (both opened and unopened)
+			const allCards = this.unopened;
 			const cards = [];
-			const totalCards = this.unopened.length;
 			
-			// Debug: log visible cards computation
-			console.log('Visible cards computation:', {
-				totalCards,
-				centerIndex: this.centerIndex,
-				unopened: this.unopened.length,
-				unopenedArray: this.unopened
-			});
-			
-			if (totalCards === 0) {
-				console.log('No cards available');
+			if (allCards.length === 0) {
 				return [];
 			}
 			
-			if (totalCards === 1) {
+			// Get valid center index without modifying this.centerIndex
+			let validCenterIndex = this.centerIndex;
+			if (validCenterIndex < 0) {
+				validCenterIndex = 0;
+			}
+			if (validCenterIndex >= allCards.length) {
+				validCenterIndex = allCards.length - 1;
+			}
+			
+			// Debug: log visible cards computation
+			console.log('Visible cards computation:', {
+				totalCards: this.unopened.length,
+				allCards: allCards.length,
+				centerIndex: this.centerIndex,
+				validCenterIndex: validCenterIndex,
+				remaining: this.remaining
+			});
+			
+			if (allCards.length === 1) {
 				// Only show center card
 				const card = {
-					...this.unopened[0],
+					...allCards[0],
 					originalIndex: 0
 				};
 				console.log('Single card:', card);
 				return [card];
 			}
 			
-			if (totalCards === 2) {
+			if (allCards.length === 2) {
 				// Show both cards side by side
 				const cards = [
 					{
-						...this.unopened[0],
+						...allCards[0],
 						originalIndex: 0
 					},
 					{
-						...this.unopened[1],
+						...allCards[1],
 						originalIndex: 1
 					}
 				];
@@ -282,10 +268,10 @@ export default {
 			
 			// Show 3 cards: previous, current, next
 			for (let i = -1; i <= 1; i++) {
-				const index = this.centerIndex + i;
-				if (index >= 0 && index < totalCards) {
+				const index = validCenterIndex + i;
+				if (index >= 0 && index < allCards.length) {
 					const card = {
-						...this.unopened[index],
+						...allCards[index],
 						originalIndex: index
 					};
 					cards.push(card);
@@ -297,6 +283,19 @@ export default {
 		carouselTrackStyle() {
 			// No translation needed since we're only showing 3 cards
 			return {};
+		}
+	},
+	watch: {
+		// Watch for changes in unopened cards and adjust centerIndex accordingly
+		unopened: {
+			handler() {
+				this.$nextTick(() => {
+					this.ensureValidCenterIndex();
+					console.log('Unopened array changed, current length:', this.unopened.length);
+					console.log('Unopened cards (not opened):', this.unopened.filter(card => !card.opened).length);
+				});
+			},
+			deep: true
 		}
 	},
 	methods: {
@@ -315,11 +314,12 @@ export default {
 			};
 			
 			const { translate, rotate, translateZ } = getResponsiveValues();
+			const allCards = this.unopened;
 			
-			console.log('Card style for idx:', idx, 'total cards:', this.unopened.length);
+			console.log('Card style for idx:', idx, 'total cards:', allCards.length);
 			
 			// Handle single card case (only center card visible)
-			if (this.unopened.length === 1) {
+			if (allCards.length === 1) {
 				const style = {
 					transform: 'translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(1)',
 					opacity: 1,
@@ -330,7 +330,7 @@ export default {
 			}
 			
 			// Handle two cards case
-			if (this.unopened.length === 2) {
+			if (allCards.length === 2) {
 				const twoCardTranslate = translate * 0.5; // Half the normal spacing
 				const twoCardRotate = rotate * 0.5; // Half the normal rotation
 				const twoCardZ = translateZ * 0.5; // Half the normal depth
@@ -384,9 +384,9 @@ export default {
 		},
 		isCenterCard(idx) {
 			const totalCards = this.unopened.length;
-			if (totalCards === 1) return idx === 0;
-			if (totalCards === 2) return false; // No center card for 2 cards
-			return idx === 1; // Center card in 3+ cards
+			const isCenter = totalCards === 1 ? idx === 0 : (totalCards === 2 ? false : idx === 1);
+			console.log('isCenterCard:', { idx, totalCards, isCenter });
+			return isCenter;
 		},
 		isLeftCard(idx) {
 			const totalCards = this.unopened.length;
@@ -403,24 +403,73 @@ export default {
 		selectCard(idx) {
 			if (idx >= 0 && idx < this.unopened.length) {
 				this.centerIndex = idx;
+			} else if (this.unopened.length > 0) {
+				// If index is out of bounds, set to valid range
+				this.centerIndex = Math.max(0, Math.min(idx, this.unopened.length - 1));
 			}
 		},
 		openCard(idx) {
-			console.log('Opening card at index:', idx, 'total cards:', this.unopened.length);
-			if (idx >= 0 && idx < this.unopened.length) {
-				// Set the clicked card as center first
-				this.centerIndex = idx;
-				console.log('Center index set to:', this.centerIndex);
-				// Then open it
-				this.openNext();
+			console.log('openCard called with idx:', idx);
+			console.log('Opening card at visible index:', idx, 'total cards:', this.unopened.length);
+			
+			if (idx >= 0 && idx < this.visibleCards.length) {
+				// Get the actual card from visibleCards
+				const card = this.visibleCards[idx];
+				if (card && !card.opened) {
+					// Find the actual index in the unopened array
+					const actualIndex = this.unopened.findIndex(c => c.id === card.id);
+					if (actualIndex >= 0) {
+						// Set the clicked card as center first
+						this.centerIndex = actualIndex;
+						console.log('Center index set to:', this.centerIndex);
+						// Then open it
+						this.openNext();
+					} else {
+						console.log('Could not find card in unopened array');
+					}
+				} else {
+					console.log('Card already opened or not found');
+				}
+			} else {
+				console.log('Invalid idx:', idx, 'visible cards:', this.visibleCards.length);
 			}
 		},
+		// Helper function to ensure centerIndex is always valid
+		ensureValidCenterIndex() {
+			console.log('ensureValidCenterIndex:', {
+				totalCards: this.unopened.length,
+				currentCenterIndex: this.centerIndex
+			});
+			
+			if (this.unopened.length === 0) {
+				this.centerIndex = 0;
+				return;
+			}
+			if (this.centerIndex < 0) {
+				this.centerIndex = 0;
+			}
+			if (this.centerIndex >= this.unopened.length) {
+				this.centerIndex = this.unopened.length - 1;
+			}
+			
+			console.log('centerIndex after validation:', this.centerIndex);
+		},
 		handleCarouselClick(e) {
-			// Only open card if not dragging and there are cards
+			// Only open card if not dragging and there are unopened cards
 			if (!this.isDragging && this.remaining > 0) {
 				// Check if click is on empty area (not on a card)
 				if (e.target === e.currentTarget || e.target.classList.contains('carousel-track')) {
-					this.openNext();
+					// Ensure centerIndex is valid before opening
+					this.ensureValidCenterIndex();
+					
+					// Check if the center card is not already opened
+					const centerCard = this.unopened[this.centerIndex];
+					if (centerCard && !centerCard.opened) {
+						// Open the center card
+						this.openNext();
+					} else {
+						console.log('Center card already opened or not found');
+					}
 				}
 			}
 		},
@@ -432,6 +481,9 @@ export default {
 		previousCard() {
 			if (this.unopened.length === 0) return;
 			
+			// Ensure centerIndex is valid before navigation
+			this.ensureValidCenterIndex();
+			
 			// Infinite scroll: if at first card, go to last
 			if (this.centerIndex <= 0) {
 				// Smooth transition to last card
@@ -439,9 +491,14 @@ export default {
 			} else {
 				this.centerIndex--;
 			}
+			
+			console.log('Previous card - centerIndex:', this.centerIndex, 'total cards:', this.unopened.length);
 		},
 		nextCard() {
 			if (this.unopened.length === 0) return;
+			
+			// Ensure centerIndex is valid before navigation
+			this.ensureValidCenterIndex();
 			
 			// Infinite scroll: if at last card, go to first
 			if (this.centerIndex >= this.unopened.length - 1) {
@@ -450,6 +507,8 @@ export default {
 			} else {
 				this.centerIndex++;
 			}
+			
+			console.log('Next card - centerIndex:', this.centerIndex, 'total cards:', this.unopened.length);
 		},
 		// --- Swipe/Touch methods ---
 		handleTouchStart(e) {
@@ -492,13 +551,17 @@ export default {
 			const deltaX = this.touchStartX - this.touchEndX;
 			const deltaY = this.touchStartY - this.touchEndY;
 			
+			console.log('Swipe detected:', { deltaX, deltaY, threshold: this.swipeThreshold });
+			
 			// Only handle horizontal swipes
 			if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > this.swipeThreshold) {
 				if (deltaX > 0) {
 					// Swipe left - next card
+					console.log('Swipe left - going to next card');
 					this.nextCard();
 				} else {
 					// Swipe right - previous card
+					console.log('Swipe right - going to previous card');
 					this.previousCard();
 				}
 			}
@@ -641,7 +704,6 @@ export default {
 			});
 		},
 		loadLevel(level) {
-			this.opened = [];
 			this.unopened = this.createDeckForLevel(level);
 			this.centerIndex = 0; // Reset coverflow to first card
 			this.loadBgmForLevel(level);
@@ -834,48 +896,74 @@ export default {
 			// Set shuffling state for animation
 			this.isShuffling = true;
 			
-			// Fisher-Yates shuffle algorithm
-			const unopened = this.unopened;
-			for (let i = unopened.length - 1; i > 0; i--) {
+			// Fisher-Yates shuffle algorithm - only shuffle unopened cards
+			const unopenedCards = this.unopened.filter(card => !card.opened);
+			const openedCards = this.unopened.filter(card => card.opened);
+			
+			// Shuffle only unopened cards
+			for (let i = unopenedCards.length - 1; i > 0; i--) {
 				const j = Math.floor(Math.random() * (i + 1));
-				[unopened[i], unopened[j]] = [unopened[j], unopened[i]];
+				[unopenedCards[i], unopenedCards[j]] = [unopenedCards[j], unopenedCards[i]];
 			}
 			
-			// Set random center index after shuffle
-			const randomCenterIndex = Math.floor(Math.random() * unopened.length);
-			this.centerIndex = randomCenterIndex;
+			// Combine shuffled unopened cards with opened cards
+			this.unopened = [...unopenedCards, ...openedCards];
 			
-			console.log('Shuffled deck, center card set to index:', randomCenterIndex);
+			// Set random center index to an unopened card
+			if (unopenedCards.length > 0) {
+				const randomCenterIndex = Math.floor(Math.random() * unopenedCards.length);
+				this.centerIndex = randomCenterIndex;
+			} else {
+				this.centerIndex = 0;
+			}
+			
+			// Ensure centerIndex is valid
+			if (this.centerIndex < 0) {
+				this.centerIndex = 0;
+			}
+			
+			console.log('Shuffled deck, center card set to index:', this.centerIndex);
 			
 			// Reset shuffling state and auto-open the center card
 			setTimeout(() => {
 				this.isShuffling = false;
-				this.openNext();
+				if (unopenedCards.length > 0) {
+					this.openNext();
+				}
 			}, 500); // Delay to show the shuffle animation
 		},
 		openNext() {
 			if (this.isOpening) return;
 			if (this.unopened.length === 0) return;
-			if (this.centerIndex < 0 || this.centerIndex >= this.unopened.length) return;
+			
+			// Ensure centerIndex is valid
+			this.ensureValidCenterIndex();
+			
+			// Get the card at centerIndex
+			const card = this.unopened[this.centerIndex];
+			if (!card || card.opened) {
+				console.log('Card not found or already opened:', card);
+				return; // Don't open already opened cards
+			}
 			
 			this.isOpening = true;
-			const idx = this.centerIndex; // Open the currently selected card
-			const card = this.unopened[idx];
+			console.log('Opening card:', card.label, 'at index:', this.centerIndex);
+			console.log('Card before opening:', card);
 			this.playOpenCardSound();
 			card.opened = true; // trigger in-place flip on unopened stack
+			console.log('Card after setting opened=true:', card);
 			setTimeout(() => {
-				// move after flip completes
-				this.unopened.splice(idx, 1);
-				this.opened.push(card);
-				
-				// Adjust center index if needed
-				if (this.centerIndex >= this.unopened.length && this.unopened.length > 0) {
-					this.centerIndex = this.unopened.length - 1;
-				}
-				
 				this.isOpening = false;
-				// Auto-advance when deck is empty
-				if (this.unopened.length === 0) {
+				
+				// Don't adjust center index - keep it pointing to the same card
+				// The opened card will remain visible in carousel
+				console.log('Card opened, centerIndex remains:', this.centerIndex);
+				
+				// Check if there are any unopened cards left
+				const remainingUnopenedCards = this.unopened.filter(card => !card.opened);
+				
+				// Auto-advance when all cards are opened
+				if (remainingUnopenedCards.length === 0) {
 					// if already at max level, play win sound and show finish overlay
 					if (this.currentLevel >= 4) {
 						this.playLevelWinSound();

@@ -56,15 +56,78 @@
 .carddeck-app .card.back { background: #f3f5f7; }
 .carddeck-app .stack-area { position: relative; height: calc(var(--card-h) + 40px); perspective: 800px; }
 .carddeck-app .card3d { width: var(--card-w); height: var(--card-h); position: absolute; left: 50%; transform-style: preserve-3d; transform-origin: center; transition: transform 0.5s ease; border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.28); box-shadow: 0 8px 20px rgba(0,0,0,0.18); background: #fff; }
-.carddeck-app .card3d .face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; font-size: 26px; }
-.carddeck-app .card3d .face.front { display: grid; grid-template-rows: 1fr auto; place-items: center; padding: 8px; box-sizing: border-box; gap: 6px; }
-.carddeck-app .card3d .face.front .front-img { max-width: 100%; max-height: calc(var(--card-h) - 48px); object-fit: contain; border-radius: 8px; }
-.carddeck-app .card3d .face.front { background: #fff; }
-.carddeck-app .card3d .face.front .front-label { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; font-weight: 700; font-size: 18px; color: #0f172a; letter-spacing: 0.4px; text-shadow: 0 1px 1px rgba(255,255,255,.6); }
+.carddeck-app .card3d .face { 
+	position: absolute; 
+	width: 100%; 
+	height: 100%; 
+	backface-visibility: hidden; 
+	display: block; 
+	font-size: 26px; 
+}
+.carddeck-app .card3d .face.front { 
+	display: block; 
+	padding: 0; 
+	box-sizing: border-box; 
+	position: relative;
+}
+.carddeck-app .card3d .face.front .front-img { 
+	width: 100%; 
+	height: 100%; 
+	object-fit: cover; 
+	border-radius: 8px; 
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+.carddeck-app .card3d .face.front { 
+	background: transparent; 
+}
+.carddeck-app .card3d .face.front .front-label { 
+	font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; 
+	font-weight: 700; 
+	font-size: 18px; 
+	color: #fff; 
+	letter-spacing: 0.4px; 
+	text-shadow: 0 2px 4px rgba(0,0,0,0.8); 
+	position: absolute;
+	bottom: 8px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(0,0,0,0.6);
+	padding: 4px 8px;
+	border-radius: 4px;
+	backdrop-filter: blur(4px);
+}
 .carddeck-app .card3d.opened .face.front .front-label { font-size: 19px; }
-.carddeck-app .card3d .face.back { background-image: url('../card/back-card.png'); background-size: contain; background-position: center; background-repeat: no-repeat; color: transparent; font-size: 0; }
-.carddeck-app .card3d.opened .face.back { background-image: none; background-color: #fff; }
+.carddeck-app .card3d .face.back { 
+	background-image: url('../card/back-card.png'); 
+	background-size: cover; 
+	background-position: center; 
+	background-repeat: no-repeat; 
+	color: transparent; 
+	font-size: 0; 
+	background-color: transparent;
+	display: block;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+/* Ensure no labels appear on face back */
+.carddeck-app .card3d .face.back * {
+	display: none !important;
+	visibility: hidden !important;
+	opacity: 0 !important;
+}
+
+.carddeck-app .card3d .face.back .front-label {
+	display: none !important;
+	visibility: hidden !important;
+	opacity: 0 !important;
+	background: none !important;
+}
+.carddeck-app .card3d.opened .face.back { background-image: none; background-color: transparent; }
 .carddeck-app .card3d .front { transform: rotateY(180deg); }
+.carddeck-app .card3d.opened .front { transform: rotateY(0deg); }
 .carddeck-app .card3d.opened { transform: translateX(-50%) rotateY(180deg) var(--stackTransform); }
 .carddeck-app .card3d:not(.opened) { transform: translateX(-50%) rotateY(0deg) var(--stackTransform); }
 .carddeck-app .card3d.opened { z-index: 999; }
@@ -209,6 +272,80 @@
 .carddeck-app .carousel-card.is-right:active {
 	/* No active effect for non-center cards */
 	pointer-events: none;
+}
+
+/* Opened card styling for carousel */
+.carddeck-app .carousel-card.opened {
+	/* Remove !important to allow carousel positioning to work */
+	z-index: 999 !important;
+}
+
+.carddeck-app .carousel-card.opened .face.back {
+	background-image: none !important;
+	background-color: transparent !important;
+	display: none !important;
+}
+
+.carddeck-app .card3d.opened .face.back {
+	background-image: none !important;
+	background-color: transparent !important;
+	display: none !important;
+}
+
+.carddeck-app .carousel-card.opened .face.front {
+	animation: shine 0.6s ease;
+	/* Remove !important to allow carousel positioning to work */
+	transform: rotateY(0deg);
+	display: block !important;
+	background: transparent !important;
+	opacity: 1 !important;
+}
+
+/* Ensure opened cards follow carousel positioning */
+.carddeck-app .carousel-card.opened.is-center {
+	/* Center card positioning will be handled by carouselCardStyle */
+	z-index: 999 !important;
+}
+
+.carddeck-app .carousel-card.opened.is-left {
+	/* Left card positioning will be handled by carouselCardStyle */
+	z-index: 998 !important;
+}
+
+.carddeck-app .carousel-card.opened.is-right {
+	/* Right card positioning will be handled by carouselCardStyle */
+	z-index: 998 !important;
+}
+
+.carddeck-app .carousel-card.opened .face.front .front-label {
+	display: none !important;
+}
+
+.carddeck-app .card3d.opened .face.front .front-label {
+	display: none !important;
+}
+
+/* Ensure no labels appear on carousel face back */
+.carddeck-app .carousel-card .face.back * {
+	display: none !important;
+	visibility: hidden !important;
+	opacity: 0 !important;
+}
+
+.carddeck-app .carousel-card .face.back .front-label {
+	display: none !important;
+	visibility: hidden !important;
+	opacity: 0 !important;
+	background: none !important;
+}
+
+/* Smooth transitions for carousel cards */
+.carddeck-app .carousel-card {
+	transition: transform 0.5s ease, opacity 0.3s ease;
+}
+
+.carddeck-app .carousel-card.opened {
+	transition: transform 0.5s ease, opacity 0.3s ease;
 }
 
 .carddeck-app .carousel-card.is-left,
