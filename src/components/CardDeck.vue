@@ -223,13 +223,13 @@ export default {
 				return [];
 			}
 			
-			// Get valid center index without modifying this.centerIndex
+			// Ensure centerIndex is within bounds
 			let validCenterIndex = this.centerIndex;
 			if (validCenterIndex < 0) {
-				validCenterIndex = 0;
+				validCenterIndex = allCards.length - 1;
 			}
 			if (validCenterIndex >= allCards.length) {
-				validCenterIndex = allCards.length - 1;
+				validCenterIndex = 0;
 			}
 			
 			// Debug: log visible cards computation
@@ -241,44 +241,28 @@ export default {
 				remaining: this.remaining
 			});
 			
-			if (allCards.length === 1) {
-				// Only show center card
-				const card = {
-					...allCards[0],
-					originalIndex: 0
-				};
-				console.log('Single card:', card);
-				return [card];
-			}
-			
-			if (allCards.length === 2) {
-				// Show both cards side by side
-				const cards = [
-					{
-						...allCards[0],
-						originalIndex: 0
-					},
-					{
-						...allCards[1],
-						originalIndex: 1
-					}
-				];
-				console.log('Two cards:', cards);
-				return cards;
-			}
-			
-			// Show 3 cards: previous, current, next
+			// Always show 3 cards with infinite loop
 			for (let i = -1; i <= 1; i++) {
-				const index = validCenterIndex + i;
-				if (index >= 0 && index < allCards.length) {
-					const card = {
-						...allCards[index],
-						originalIndex: index
-					};
-					cards.push(card);
+				let index = validCenterIndex + i;
+				
+				// Handle infinite loop for left card
+				if (index < 0) {
+					index = allCards.length - 1;
 				}
+				// Handle infinite loop for right card
+				else if (index >= allCards.length) {
+					index = 0;
+				}
+				
+				const card = {
+					...allCards[index],
+					originalIndex: index,
+					position: i // -1 = left, 0 = center, 1 = right
+				};
+				cards.push(card);
 			}
-			console.log('Three+ cards:', cards);
+			
+			console.log('Infinite 3 cards:', cards);
 			return cards;
 		},
 		carouselTrackStyle() {
@@ -315,47 +299,10 @@ export default {
 			};
 			
 			const { translate, rotate, translateZ } = getResponsiveValues();
-			const allCards = this.unopened;
 			
-			console.log('Card style for idx:', idx, 'total cards:', allCards.length);
+			console.log('Card style for idx:', idx, 'infinite carousel');
 			
-			// Handle single card case (only center card visible)
-			if (allCards.length === 1) {
-				const style = {
-					transform: 'translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(1)',
-					opacity: 1,
-					zIndex: 3
-				};
-				console.log('Single card style:', style);
-				return style;
-			}
-			
-			// Handle two cards case
-			if (allCards.length === 2) {
-				const twoCardTranslate = translate * 0.5; // Half the normal spacing
-				const twoCardRotate = rotate * 0.5; // Half the normal rotation
-				const twoCardZ = translateZ * 0.5; // Half the normal depth
-				
-				if (idx === 0) { // First card
-					const style = {
-						transform: `translate(-50%, -50%) translateX(-${twoCardTranslate}px) translateZ(-${twoCardZ}px) rotateY(-${twoCardRotate}deg) scale(0.9)`,
-						opacity: 0.8,
-						zIndex: 2
-					};
-					console.log('Two cards - first card style:', style);
-					return style;
-				} else { // Second card
-					const style = {
-						transform: `translate(-50%, -50%) translateX(${twoCardTranslate}px) translateZ(-${twoCardZ}px) rotateY(${twoCardRotate}deg) scale(0.9)`,
-						opacity: 0.8,
-						zIndex: 2
-					};
-					console.log('Two cards - second card style:', style);
-					return style;
-				}
-			}
-			
-			// idx: 0 = left, 1 = center, 2 = right (3+ cards)
+			// Always 3 cards layout: idx 0 = left, 1 = center, 2 = right
 			const positions = {
 				0: { // Left card
 					transform: `translate(-50%, -50%) translateX(-${translate}px) translateZ(-${translateZ}px) rotateY(-${rotate}deg) scale(0.8)`,
@@ -380,26 +327,22 @@ export default {
 				zIndex: 0
 			};
 			
-			console.log('Three+ cards style for idx', idx, ':', style);
+			console.log('Infinite carousel style for idx', idx, ':', style);
 			return style;
 		},
 		isCenterCard(idx) {
-			const totalCards = this.unopened.length;
-			const isCenter = totalCards === 1 ? idx === 0 : (totalCards === 2 ? false : idx === 1);
-			console.log('isCenterCard:', { idx, totalCards, isCenter });
+			// Always 3 cards: idx 0 = left, idx 1 = center, idx 2 = right
+			const isCenter = idx === 1;
+			console.log('isCenterCard:', { idx, isCenter });
 			return isCenter;
 		},
 		isLeftCard(idx) {
-			const totalCards = this.unopened.length;
-			if (totalCards === 1) return false;
-			if (totalCards === 2) return idx === 0;
-			return idx === 0; // Left card in 3+ cards
+			// Always 3 cards: idx 0 = left, idx 1 = center, idx 2 = right
+			return idx === 0;
 		},
 		isRightCard(idx) {
-			const totalCards = this.unopened.length;
-			if (totalCards === 1) return false;
-			if (totalCards === 2) return idx === 1;
-			return idx === 2; // Right card in 3+ cards
+			// Always 3 cards: idx 0 = left, idx 1 = center, idx 2 = right
+			return idx === 2;
 		},
 		selectCard(idx) {
 			if (idx >= 0 && idx < this.unopened.length) {
@@ -435,7 +378,7 @@ export default {
 				console.log('Invalid idx:', idx, 'visible cards:', this.visibleCards.length);
 			}
 		},
-		// Helper function to ensure centerIndex is always valid
+		// Helper function to ensure centerIndex is always valid for infinite carousel
 		ensureValidCenterIndex() {
 			console.log('ensureValidCenterIndex:', {
 				totalCards: this.unopened.length,
@@ -446,11 +389,13 @@ export default {
 				this.centerIndex = 0;
 				return;
 			}
+			
+			// Handle infinite loop bounds
 			if (this.centerIndex < 0) {
-				this.centerIndex = 0;
+				this.centerIndex = this.unopened.length - 1;
 			}
 			if (this.centerIndex >= this.unopened.length) {
-				this.centerIndex = this.unopened.length - 1;
+				this.centerIndex = 0;
 			}
 			
 			console.log('centerIndex after validation:', this.centerIndex);
