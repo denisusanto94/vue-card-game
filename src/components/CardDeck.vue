@@ -618,7 +618,8 @@ export default {
 					require('../assets/card/level-1/21.png'),
 					require('../assets/card/level-1/22.png'),
 					require('../assets/card/level-1/23.png'),
-					require('../assets/card/level-1/24.png')
+					require('../assets/card/level-1/24.png'),
+					require('../assets/card/level-1/25.png')
 				],
 				2: [
 					require('../assets/card/level-2/1.png'),
