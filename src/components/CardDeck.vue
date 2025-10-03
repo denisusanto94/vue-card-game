@@ -63,7 +63,7 @@
 					<span style="font-size: 12px; color: #888;">[Debug: {{ unopened.length }} cards, visible: {{ visibleCards.length }}]</span>
 				</div>
 				<div class="carousel-area" 
-					:class="{ dragging: isDragging, shuffling: isShuffling }"
+					:class="{ dragging: isDragging, shuffling: isShuffling, opening: isOpening }"
 					@click="handleCarouselClick"
 					@touchstart="handleTouchStart"
 					@touchend="handleTouchEnd"
@@ -192,7 +192,7 @@
 			<span class="name">{{ user ? user.username : 'Guest' }}</span>
 			<button v-if="!user" class="btn" @click="navigateToLogin('register')">Daftar</button>
 			<button v-if="!user" class="btn" style="background:#64748b" @click="navigateToLogin('login')">Login</button>
-			<button v-else class="btn" style="background:#ef4444" @click="logout">Logout</button>
+			<button v-else class="icon-btn logout-btn" @click="logout" aria-label="Logout" title="Logout">⏻</button>
 		</div>
 	</div>
 </template>
@@ -357,27 +357,31 @@ export default {
 			
 			console.log('Card style for idx:', idx, 'infinite carousel');
 			
+			// Detect if this visible card is opened to slightly enlarge the center when opened
+			const visibleCard = (this.visibleCards && this.visibleCards[idx]) ? this.visibleCards[idx] : null;
+			const isOpened = !!(visibleCard && visibleCard.opened);
+			
 			// Always 3 cards layout: idx 0 = left, 1 = center, 2 = right
 			const positions = {
 				0: { // Left card
-					transform: `translate(-50%, -50%) translateX(-${translate}px) translateZ(-${translateZ}px) rotateY(-${rotate}deg) scale(0.5)`,
+					transform: `translate(-50%, -50%) translateX(-${translate}px) translateZ(-${translateZ}px) rotateY(-${rotate}deg) scale(0.4)`,
 					opacity: 0.7,
 					zIndex: 1
 				},
 				1: { // Center card
-					transform: 'translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(1.35)',
+					transform: `translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(${isOpened ? 2.0 : 1.8})`,
 					opacity: 1,
 					zIndex: 3
 				},
 				2: { // Right card
-					transform: `translate(-50%, -50%) translateX(${translate}px) translateZ(-${translateZ}px) rotateY(${rotate}deg) scale(0.5)`,
+					transform: `translate(-50%, -50%) translateX(${translate}px) translateZ(-${translateZ}px) rotateY(${rotate}deg) scale(0.4)`,
 					opacity: 0.7,
 					zIndex: 1
 				}
 			};
 			
 			const style = positions[idx] || {
-				transform: 'translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(0.5)',
+				transform: 'translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(0.4)',
 				opacity: 0,
 				zIndex: 0
 			};
