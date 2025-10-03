@@ -262,7 +262,7 @@ export default {
 		appBackgroundStyle() {
 			const style = { minHeight: '100vh' };
 			// Use the same background image for all levels
-			const img = require('../assets/background/background-main-2.png');
+			const img = require('../assets/background/background-main.png');
 			style.backgroundImage = `url(${img})`;
 			style.backgroundSize = 'cover';
 			style.backgroundPosition = 'center';
