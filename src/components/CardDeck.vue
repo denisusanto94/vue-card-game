@@ -206,7 +206,7 @@ export default {
 		return {
 			unopened: [],
 			isOpening: false,
-			isDisplayBadgeLevel: false,
+			isDisplayBadgeLevel: true,
 			flipDurationMs: 520,
 			currentLevel: 1,
 			showLevelUp: false,
@@ -258,7 +258,7 @@ export default {
 			const p = this.loveMeterPercentage;
 			return Math.max(2, Math.min(98, p));
 		},
-		levels() { return [1,2,3,4]; },
+		levels() { return [1,2,3]; },
 		appBackgroundStyle() {
 			const style = { minHeight: '100vh' };
 			// Use the same background image for all levels
@@ -789,12 +789,30 @@ export default {
 			this.loadLevel(this.currentLevel);
 		},
 		levelBadgeSrc(level) {
-			switch (level) {
-				case 1: return require('../assets/level-badge/level-1.svg');
-				case 2: return require('../assets/level-badge/level-2.svg');
-				case 3: return require('../assets/level-badge/level-3.svg');
-				case 4: return require('../assets/level-badge/level-4.svg');
-				default: return require('../assets/level-badge/level-1.svg');
+			// Prefer PNG badges; gracefully fall back to SVG/JPG if PNG is not available
+			try {
+				const ctx = require.context('../assets/level-badge', false, /\.(png|svg|jpe?g)$/);
+				const keys = ctx.keys();
+				const candidates = [
+					`./level-${level}.png`, `./level${level}.png`,
+					`./level-${level}.svg`, `./level${level}.svg`,
+					`./level-${level}.jpg`, `./level${level}.jpg`,
+					`./level-${level}.jpeg`, `./level${level}.jpeg`
+				];
+				let chosen = null;
+				for (const c of candidates) { if (keys.includes(c)) { chosen = c; break; } }
+				if (!chosen) {
+					// Try any file that contains the level number
+					chosen = keys.find(k => k.includes(`-${level}`) || k.includes(`${level}`)) || keys[0];
+				}
+				let src = ctx(chosen);
+				src = src && src.default ? src.default : src;
+				return src;
+			} catch (e) {
+				// Final fallback to a static path (may still fail if missing)
+				try { return require(`../assets/level-badge/level-${level}.png`); } catch (_) {
+					return require('../assets/level-badge/level-1.png');
+				}
 			}
 		},
 		// --- Background music per level ---
@@ -1115,8 +1133,8 @@ export default {
 				
 				// Auto-advance when all cards are opened
 				if (remainingUnopenedCards.length === 0) {
-					// if already at max level, play win sound and show finish overlay
-					if (this.currentLevel >= 4) {
+					// if already at max level (3), play win sound and show finish overlay
+					if (this.currentLevel >= 3) {
 						this.playLevelWinSound();
 						setTimeout(() => { this.showFinish = true; }, 300);
 					} else {

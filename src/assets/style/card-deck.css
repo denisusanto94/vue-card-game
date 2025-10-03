@@ -65,21 +65,23 @@ html, body {
 	min-height: 60vh;
 }
 .carddeck-app .badge-level { 
-	display: flex; 
-	gap: 12px; 
-	align-items: center; 
-	justify-content: center; 
-	margin: 0; 
-	padding-top: 8px;
-	position: fixed;
-	top: 10px;
-	left: 50%;
-	transform: translateX(-50%);
-	z-index: 2100;
+    display: flex; 
+    gap: 0; 
+    align-items: center; 
+    justify-content: center; 
+    margin: 0; 
+    padding-top: 8px;
+    position: fixed;
+    top: 16vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2100;
+    width: min(90vw, 1000px);
+    height: 64px;
 }
-.carddeck-app .badge-level .badge-item { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 999px; background: rgba(241,245,249,0.85); box-shadow: inset 0 0 0 1px #e2e8f0; transition: transform .18s ease, background .18s ease, box-shadow .18s ease, filter .18s ease; backdrop-filter: blur(2px); }
-.carddeck-app .badge-level .badge-item img { width: 22px; height: 22px; }
-.carddeck-app .badge-level .badge-item.active { background: #e0f2fe; box-shadow: inset 0 0 0 2px #38bdf8, 0 4px 10px rgba(56,189,248,.25); transform: translateY(-1px) scale(1.05); }
+.carddeck-app .badge-level .badge-item { flex: 1 1 33.333%; display: block; padding: 0; margin: 0; border-radius: 0; background: transparent; box-shadow: none; transition: transform .18s ease, filter .18s ease; backdrop-filter: none; height: 100%; }
+.carddeck-app .badge-level .badge-item img { width: 100%; height: 100%; display: block; margin: 0; padding: 0; border: 0; object-fit: cover; object-position: center center; }
+.carddeck-app .badge-level .badge-item.active { background: transparent; box-shadow: none; transform: translateY(-1px) scale(1.05); }
 .carddeck-app .badge-level .badge-item.passed { filter: grayscale(0.9) brightness(0.95); opacity: 0.85; }
 .carddeck-app .badge-level .badge-item:not(.active):hover { transform: translateY(-1px); }
 
@@ -251,6 +253,7 @@ html, body {
 
 /* Responsive: mobile-first */
 @media (max-width: 599px) {
+	.carddeck-app .badge-level { top: 14vh; width: 100%; height: 56px; }
 	.carddeck-app { 
 		--card-w: 140px; 
 		--card-h: calc(var(--card-w) * 1.4); 
@@ -266,8 +269,8 @@ html, body {
 		min-height: 180px;
 	}
 	.carddeck-app .stack-info { font-size: 14px; }
-	.carddeck-app .badge-level .badge-item { width: 32px; height: 32px; }
-	.carddeck-app .badge-level .badge-item img { width: 20px; height: 20px; }
+	.carddeck-app .badge-level .badge-item { width: 100%; height: 50px; padding: 10px;}
+	.carddeck-app .badge-level .badge-item img { width: 120px; height: 50px; }
 	.carddeck-app .controls { bottom: 15%; }
 	body { overflow: hidden; }
 }
@@ -629,6 +632,7 @@ html, body {
 }
 
 @media (min-width: 600px) and (max-width: 1023px) {
+	.carddeck-app .badge-level { top: 15vh; width: 90vw; height: 60px; }
 	.carddeck-app .carousel-card.is-left:hover {
 		transform: translateX(-160px) translateZ(-60px) rotateY(-28deg) scale(0.85) !important;
 	}
@@ -639,6 +643,7 @@ html, body {
 }
 
 @media (min-width: 1024px) {
+	.carddeck-app .badge-level { top: 16vh; width: min(80vw, 1000px); height: 64px; }
 	.carddeck-app .carousel-card.is-left:hover {
 		transform: translateX(-200px) translateZ(-80px) rotateY(-30deg) scale(0.85) !important;
 	}
