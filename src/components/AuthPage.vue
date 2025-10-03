@@ -24,10 +24,10 @@
 						<p class="description">{{ pageMode === 'login' ? 'Wild Loov hadir buat kalian yang berani buka batasan, eksplor fantasi, dan nikmatin keseruan bareng tanpa malu.' : 'Buat akun baru untuk membuka semua level hingga level 4 dan nikmati pengalaman yang lebih lengkap.' }}</p>
 					</div>
 					
-					<div class="auth-form">
+			<div class="auth-form">
 						<div class="input-group">
 							<div class="input-icon">👤</div>
-							<input class="auth-input" v-model.trim="username" placeholder="Username" />
+				<input class="auth-input" v-model.trim="username" placeholder="Username" />
 						</div>
 						<div class="input-group">
 							<div class="input-icon">🔒</div>
@@ -118,14 +118,25 @@ export default {
 		mode: { type: String, default: 'login' }
 	},
 	data() {
-		return { username: '', password: '', pageMode: 'login' };
+		return { 
+			username: '', 
+			password: '', 
+			pageMode: 'login',
+			audioLogin: null
+		};
 	},
 	created() {
 		// accept mode from prop or query (?mode=login|register)
 		const qMode = this.$route && this.$route.query && this.$route.query.mode;
 		this.pageMode = (qMode === 'register' || qMode === 'login') ? qMode : (this.mode || 'login');
+		
+		// Initialize login audio
+		this.initLoginAudio();
 	},
 	watch: { mode(newVal) { if (newVal) this.pageMode = newVal; } },
+	beforeUnmount() {
+		this.stopLoginAudio();
+	},
 	methods: {
 		submit() {
 			this.$emit('submit', { username: this.username, password: this.password });
@@ -144,6 +155,7 @@ export default {
 						if (!match) return;
 						localStorage.setItem('user', JSON.stringify({ username: this.username }));
 					}
+					this.stopLoginAudio();
 					this.$router.push({ name: 'game' });
 				} catch (e) {
 					// ignore storage/router failures in production
@@ -159,6 +171,7 @@ export default {
 				localStorage.removeItem('user');
 				localStorage.setItem('guest', '1');
 				this.$emit('guest');
+				this.stopLoginAudio();
 				this.$router.push({ name: 'game' });
 			} catch (e) {
 				if (process.env.NODE_ENV !== 'production') {
@@ -176,6 +189,43 @@ export default {
 			// Clear form when switching modes
 			this.username = '';
 			this.password = '';
+		},
+		initLoginAudio() {
+			try {
+				this.audioLogin = new Audio(require('../assets/bgm/audio-login.wav'));
+				this.audioLogin.preload = 'auto';
+				this.audioLogin.volume = 0.5;
+				this.audioLogin.loop = true;
+				
+				// Auto-play the login audio when page loads
+				const playPromise = this.audioLogin.play();
+				if (playPromise && typeof playPromise.catch === 'function') {
+					playPromise.catch((err) => {
+						if (process.env.NODE_ENV !== 'production') {
+							// eslint-disable-next-line no-console
+							console.debug('login audio play blocked', err);
+						}
+					});
+				}
+			} catch (e) {
+				if (process.env.NODE_ENV !== 'production') {
+					// eslint-disable-next-line no-console
+					console.debug('login audio initialization failed', e);
+				}
+			}
+		},
+		stopLoginAudio() {
+			if (this.audioLogin) {
+				try {
+					this.audioLogin.pause();
+					this.audioLogin.currentTime = 0;
+				} catch (e) {
+					if (process.env.NODE_ENV !== 'production') {
+						// eslint-disable-next-line no-console
+						console.debug('login audio stop failed', e);
+					}
+				}
+			}
 		}
 	}
 }

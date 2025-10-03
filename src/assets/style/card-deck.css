@@ -1,16 +1,32 @@
 /* Card Deck - responsive layout */
 
+/* Global fullscreen setup */
+html, body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	background: #0b1020;
+}
+
 .carddeck-app {
 	--card-w: 180px;
 	--card-h: calc(var(--card-w) * 1.4);
-	min-height: 100vh;
-	min-height: 100svh;
-	max-height: 100vh;
-	max-height: 100svh;
-	width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	height: 100svh;
 	margin: 0;
 	padding: 0;
 	background-color: #0b1020;
+	overflow: hidden;
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
 }
 
 .carddeck-app .controls {
@@ -19,13 +35,48 @@
 	justify-content: center;
 	align-items: center;
 	gap: 8px;
+	position: absolute;
+	bottom: 20%;
+	left: 50%;
+	transform: translateX(-50%);
 }
 
 .carddeck-app .deck { max-width: none; width: 100%; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; }
 .carddeck-app { background-color: #0b1020; }
 
-.carddeck-app .stacks { display: flex; flex-direction: column; gap: 22px; justify-content: center; align-items: center; margin: 0; padding: 14px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; backdrop-filter: blur(4px); }
-.carddeck-app .badge-level { display: flex; gap: 12px; align-items: center; justify-content: center; margin: 0; padding-top: 8px; }
+.carddeck-app .stacks { 
+	display: flex; 
+	flex-direction: column; 
+	gap: 22px; 
+	justify-content: center; 
+	align-items: center; 
+	margin: 0; 
+	padding: 20px; 
+	background: transparent; 
+	border: none; 
+	border-radius: 16px; 
+	backdrop-filter: none;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: min(90vw, 1200px);
+	max-width: 100%;
+	min-height: 60vh;
+}
+.carddeck-app .badge-level { 
+	display: flex; 
+	gap: 12px; 
+	align-items: center; 
+	justify-content: center; 
+	margin: 0; 
+	padding-top: 8px;
+	position: fixed;
+	top: 10px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 2100;
+}
 .carddeck-app .badge-level .badge-item { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 999px; background: rgba(241,245,249,0.85); box-shadow: inset 0 0 0 1px #e2e8f0; transition: transform .18s ease, background .18s ease, box-shadow .18s ease, filter .18s ease; backdrop-filter: blur(2px); }
 .carddeck-app .badge-level .badge-item img { width: 22px; height: 22px; }
 .carddeck-app .badge-level .badge-item.active { background: #e0f2fe; box-shadow: inset 0 0 0 2px #38bdf8, 0 4px 10px rgba(56,189,248,.25); transform: translateY(-1px) scale(1.05); }
@@ -133,6 +184,56 @@
 .carddeck-app .card3d.opened { z-index: 999; }
 .carddeck-app button { padding: 10px 14px; border-radius: 10px; border: 1px solid #bbb; cursor: pointer; background: rgba(255,255,255,0.9); box-shadow: 0 3px 8px rgba(0,0,0,.18); }
 .carddeck-app button:disabled { opacity: 0.6; cursor: not-allowed; background: rgba(255,255,255,0.5); }
+
+/* Play button specific styles */
+.carddeck-app .play-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 180px;
+	height: 40px;
+	border-radius: 0px;
+	border: none;
+	cursor: pointer;
+	background-image: url('../icon/button play.png');
+	background-size: 100% 100%;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-color: transparent;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+	transition: all 0.3s ease;
+	backdrop-filter: blur(4px);
+}
+
+.carddeck-app .play-button:hover:not(:disabled) {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+	background-color: transparent;
+	background-size: 100% 100%;
+	filter: brightness(1.1);
+}
+
+.carddeck-app .play-button:active:not(:disabled) {
+	transform: translateY(0);
+	box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+	background-size: 100% 100%;
+	filter: brightness(0.9);
+}
+
+.carddeck-app .play-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	transform: none;
+	background-size: 100% 100%;
+	background-color: transparent;
+}
+
+.carddeck-app .play-button span {
+	color: #333;
+	font-weight: 600;
+	font-size: 12px;
+	text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+}
 .carddeck-app .btn { padding: 10px 14px; border-radius: 8px; background: #0ea5e9; color: #fff; border: none; font-weight: 700; letter-spacing: .3px; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
 .carddeck-app .btn:hover { filter: brightness(1.05); }
 .carddeck-app .btn:disabled { opacity: 0.6; cursor: not-allowed; filter: none; }
@@ -150,33 +251,83 @@
 
 /* Responsive: mobile-first */
 @media (max-width: 599px) {
-	.carddeck-app { --card-w: 160px; --card-h: calc(var(--card-w) * 1.4); }
-	.carddeck-app .deck { padding-top: 8px; }
-	.carddeck-app .stacks { gap: 12px; padding: 10px 12px; }
-	.carddeck-app .stack-area { height: calc(var(--card-h) + 36px); }
+	.carddeck-app { 
+		--card-w: 140px; 
+		--card-h: calc(var(--card-w) * 1.4); 
+	}
+	.carddeck-app .stacks { 
+		width: 95vw; 
+		padding: 15px; 
+		gap: 15px; 
+		min-height: 50vh;
+	}
+	.carddeck-app .carousel-area { 
+		height: calc(var(--card-h) + 60px); 
+		min-height: 180px;
+	}
 	.carddeck-app .stack-info { font-size: 14px; }
-	.carddeck-app .badge-level .badge-item { width: 40px; height: 40px; }
-	.carddeck-app .badge-level .badge-item img { width: 24px; height: 24px; }
-	body { overflow-x: hidden; }
+	.carddeck-app .badge-level .badge-item { width: 32px; height: 32px; }
+	.carddeck-app .badge-level .badge-item img { width: 20px; height: 20px; }
+	.carddeck-app .controls { bottom: 15%; }
+	body { overflow: hidden; }
 }
 
 /* Tablet */
 @media (min-width: 600px) and (max-width: 1023px) {
-	.carddeck-app { --card-w: 220px; --card-h: calc(var(--card-w) * 1.4); }
-	.carddeck-app .stacks { gap: 20px; }
-	.carddeck-app .stack-area { height: calc(var(--card-h) + 42px); }
-	.carddeck-app .badge-level .badge-item { width: 42px; height: 42px; }
-	.carddeck-app .badge-level .badge-item img { width: 26px; height: 26px; }
+	.carddeck-app { 
+		--card-w: 200px; 
+		--card-h: calc(var(--card-w) * 1.4); 
+	}
+	.carddeck-app .stacks { 
+		width: 85vw; 
+		gap: 20px; 
+		padding: 18px;
+		min-height: 55vh;
+	}
+	.carddeck-app .carousel-area { 
+		height: calc(var(--card-h) + 70px); 
+		min-height: 220px;
+	}
+	.carddeck-app .badge-level .badge-item { width: 38px; height: 38px; }
+	.carddeck-app .badge-level .badge-item img { width: 24px; height: 24px; }
+	.carddeck-app .controls { bottom: 18%; }
 }
 
 /* Desktop wide */
 @media (min-width: 1024px) {
-	.carddeck-app { --card-w: 320px; --card-h: calc(var(--card-w) * 1.4); }
-	.carddeck-app .deck { max-width: 1400px; }
-	.carddeck-app .stack-area { height: calc(var(--card-h) + 48px); }
-	.carddeck-app .stacks { gap: 24px; }
+	.carddeck-app { 
+		--card-w: 280px; 
+		--card-h: calc(var(--card-w) * 1.4); 
+	}
+	.carddeck-app .stacks { 
+		width: 80vw; 
+		max-width: 1200px;
+		gap: 24px; 
+		padding: 20px;
+		min-height: 60vh;
+	}
+	.carddeck-app .carousel-area { 
+		height: calc(var(--card-h) + 80px); 
+		min-height: 250px;
+	}
 	.carddeck-app .badge-level .badge-item { width: 44px; height: 44px; }
 	.carddeck-app .badge-level .badge-item img { width: 28px; height: 28px; }
+	.carddeck-app .controls { bottom: 20%; }
+}
+
+/* Ultra-wide screens */
+@media (min-width: 1440px) {
+	.carddeck-app { 
+		--card-w: 320px; 
+		--card-h: calc(var(--card-w) * 1.4); 
+	}
+	.carddeck-app .stacks { 
+		width: 70vw; 
+		max-width: 1400px;
+	}
+	.carddeck-app .carousel-area { 
+		height: calc(var(--card-h) + 100px); 
+	}
 }
 
 /* Level Up Overlay */
@@ -186,7 +337,15 @@
 .carddeck-app .levelup-text { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: 0.6px; }
 
 /* User bar */
-.carddeck-app .user-bar { position: fixed; right: 10px; top: 10px; display: flex; gap: 8px; align-items: center; z-index: 2100; }
+.carddeck-app .user-bar { 
+	position: fixed; 
+	right: 10px; 
+	top: 10px; 
+	display: flex; 
+	gap: 8px; 
+	align-items: center; 
+	z-index: 2100; 
+}
 .carddeck-app .user-bar .name { color: #e2e8f0; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,.35); }
 
 /* Auth Page */
@@ -217,15 +376,17 @@
 	position: relative;
 	height: calc(var(--card-h) + 80px);
 	perspective: 1200px;
-	overflow: visible; /* Changed from hidden to visible for debugging */
-	min-height: 200px; /* Ensure minimum height */
-	background: rgba(255,255,255,0.05); /* Add subtle background for debugging */
+	overflow: visible;
+	min-height: 200px;
+	width: 100%;
+	max-width: 100%;
+	background: transparent !important;
 	/* Touch/swipe support */
 	user-select: none;
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
-	touch-action: pan-y; /* Allow vertical scrolling but handle horizontal swipes */
+	touch-action: pan-y;
 }
 
 .carddeck-app .carousel-track {
@@ -236,6 +397,7 @@
 	align-items: center;
 	justify-content: center;
 	transform-style: preserve-3d;
+	background: transparent !important;
 }
 
 .carddeck-app .carousel-card {
@@ -363,9 +525,7 @@
 	transition: none; /* Disable transition during drag for smooth experience */
 }
 
-.carddeck-app .carousel-area.shuffling {
-	background: rgba(255,255,255,0.15); /* Visual feedback during shuffle */
-}
+.carddeck-app .carousel-area.shuffling { background: transparent !important; }
 
 .carddeck-app .carousel-area.shuffling .carousel-card {
 	animation: shuffle 0.5s ease-in-out;
@@ -379,13 +539,9 @@
 	100% { transform: translate(-50%, -50%) rotateY(360deg) scale(1); }
 }
 
-.carddeck-app .carousel-area.dragging {
-	background: rgba(255,255,255,0.1); /* Visual feedback during drag */
-}
+.carddeck-app .carousel-area.dragging { background: transparent !important; }
 
-.carddeck-app .carousel-area:active {
-	background: rgba(255,255,255,0.08); /* Visual feedback on tap */
-}
+.carddeck-app .carousel-area:active { background: transparent !important; }
 
 .carddeck-app .carousel-card.is-center:hover {
 	box-shadow: 0 12px 28px rgba(0,0,0,0.25);
@@ -489,6 +645,386 @@
 	
 	.carddeck-app .carousel-card.is-right:hover {
 		transform: translateX(200px) translateZ(-80px) rotateY(30deg) scale(0.85) !important;
+	}
+}
+
+/* Volume Control Styles */
+.carddeck-app .volume-toggle {
+	position: fixed;
+	left: 10px;
+	top: 10px;
+	width: 40px;
+	height: 40px;
+	background: rgba(255, 255, 255, 0.9);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 18px;
+	cursor: pointer;
+	z-index: 2100;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	transition: all 0.3s ease;
+	backdrop-filter: blur(4px);
+}
+
+.carddeck-app .volume-toggle:hover {
+	background: rgba(255, 255, 255, 1);
+	transform: scale(1.1);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.carddeck-app .volume-control {
+	position: fixed;
+	left: 10px;
+	top: 60px;
+	width: 280px;
+	background: rgba(255, 255, 255, 0.95);
+	border-radius: 12px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+	z-index: 2100;
+	opacity: 0;
+	transform: translateY(-10px);
+	transition: all 0.3s ease;
+	pointer-events: none;
+	backdrop-filter: blur(10px);
+}
+
+.carddeck-app .volume-control.show {
+	opacity: 1;
+	transform: translateY(0);
+	pointer-events: auto;
+}
+
+.carddeck-app .volume-panel {
+	padding: 16px;
+}
+
+.carddeck-app .volume-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 12px;
+}
+
+.carddeck-app .volume-title {
+	font-family: 'Inter', sans-serif;
+	font-weight: 600;
+	font-size: 16px;
+	color: #2D1B69;
+}
+
+.carddeck-app .volume-close {
+	width: 24px;
+	height: 24px;
+	border: none;
+	background: none;
+	font-size: 18px;
+	color: #666;
+	cursor: pointer;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.2s ease;
+}
+
+.carddeck-app .volume-close:hover {
+	background: rgba(0, 0, 0, 0.1);
+	color: #333;
+}
+
+.carddeck-app .volume-slider-container {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.carddeck-app .volume-mute-btn {
+	width: 36px;
+	height: 36px;
+	border: none;
+	background: rgba(138, 43, 226, 0.1);
+	border-radius: 8px;
+	font-size: 16px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.carddeck-app .volume-mute-btn:hover {
+	background: rgba(138, 43, 226, 0.2);
+	transform: scale(1.05);
+}
+
+.carddeck-app .volume-mute-btn.muted {
+	background: rgba(239, 68, 68, 0.1);
+}
+
+.carddeck-app .volume-mute-btn.muted:hover {
+	background: rgba(239, 68, 68, 0.2);
+}
+
+.carddeck-app .volume-slider {
+	flex: 1;
+	height: 6px;
+	background: #e5e7eb;
+	border-radius: 3px;
+	outline: none;
+	cursor: pointer;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.carddeck-app .volume-slider::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 18px;
+	height: 18px;
+	background: #8A2BE2;
+	border-radius: 50%;
+	cursor: pointer;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	transition: all 0.2s ease;
+}
+
+.carddeck-app .volume-slider::-webkit-slider-thumb:hover {
+	background: #7C3AED;
+	transform: scale(1.1);
+}
+
+.carddeck-app .volume-slider::-moz-range-thumb {
+	width: 18px;
+	height: 18px;
+	background: #8A2BE2;
+	border-radius: 50%;
+	cursor: pointer;
+	border: none;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.carddeck-app .volume-slider:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.carddeck-app .volume-value {
+	font-family: 'Inter', sans-serif;
+	font-weight: 500;
+	font-size: 14px;
+	color: #4A1A7A;
+	min-width: 35px;
+	text-align: center;
+}
+
+/* Love Meter Styles */
+.carddeck-app .love-meter {
+	position: absolute;
+	bottom: 9%;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	z-index: 1000;
+}
+
+.carddeck-app .love-meter-label {
+	font-family: 'SF Pro Display', system-ui, -apple-system, sans-serif;
+	font-weight: 700;
+	font-size: 16px;
+	color: #ff69b4;
+	text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+	letter-spacing: 1px;
+	margin-bottom: 4px;
+}
+
+.carddeck-app .love-meter-container {
+	position: relative;
+	width: 320px;
+	height: 45px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0px !important;
+	margin: 0px !important;
+	border: 1px solid #ff1493;
+}
+
+.carddeck-app .love-meter-bg {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	z-index: 1;
+	filter: drop-shadow(0 2px 8px rgba(255, 105, 180, 0.3));
+	padding: 0px !important;
+	margin: 0px !important;
+}
+
+.carddeck-app .love-meter-track {
+	position: absolute;
+	left: 5%;
+	right: 5%;
+	top: 28%;
+	bottom: 28%;
+	z-index: 2;
+	display: block;
+	padding: 0px !important;
+	margin: 0px !important;
+}
+
+.carddeck-app .love-meter-fill {
+	position: absolute;
+	left: 0;
+	top: 0;
+	height: 100%;
+	overflow: hidden;
+	z-index: 2;
+	transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+	border-radius: 999px;
+}
+
+.carddeck-app .love-meter-fill-bg {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, #ff69b4 0%, #ff1493 50%, #dc143c 100%);
+	opacity: 0.8;
+	border-radius: 999px;
+	box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.3);
+}
+
+.carddeck-app .love-meter-heart {
+	position: absolute;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 28px;
+	height: 28px;
+	object-fit: contain;
+	z-index: 3;
+	transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+	filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+	animation: heartPulse 2s ease-in-out infinite;
+}
+
+.carddeck-app .love-meter-value {
+	font-family: 'SF Pro Display', system-ui, -apple-system, sans-serif;
+	font-weight: 600;
+	font-size: 14px;
+	color: #ff69b4;
+	text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	letter-spacing: 0.5px;
+	margin-top: 4px;
+}
+
+@keyframes heartPulse {
+	0%, 100% { transform: translate(-50%, -50%) scale(1); }
+	50% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* Responsive Love Meter */
+@media (max-width: 599px) {
+	.carddeck-app .love-meter-container {
+		width: 280px;
+		height: 40px;
+	}
+
+	.carddeck-app .love-meter-track { left: 5%; right: 5%; top: 30%; bottom: 30%; }
+
+	/* Lower a bit more on small screens */
+	.carddeck-app .love-meter { bottom: 8%; }
+	
+	.carddeck-app .love-meter-heart {
+		width: 26px;
+		height: 26px;
+	}
+	
+	.carddeck-app .love-meter-label {
+		font-size: 14px;
+	}
+	
+	.carddeck-app .love-meter-value {
+		font-size: 12px;
+	}
+}
+
+@media (min-width: 600px) and (max-width: 1023px) {
+	.carddeck-app .love-meter-container {
+		width: 300px;
+		height: 42px;
+	}
+
+	.carddeck-app .love-meter-track { left: 5%; right: 5%; top: 28%; bottom: 28%; }
+
+	.carddeck-app .love-meter { bottom: 9%; }
+	
+	.carddeck-app .love-meter-heart {
+		width: 28px;
+		height: 28px;
+	}
+	
+	.carddeck-app .love-meter-label {
+		font-size: 15px;
+	}
+}
+
+@media (min-width: 1024px) {
+	.carddeck-app .love-meter-container {
+		width: 320px;
+		height: 45px;
+	}
+
+	.carddeck-app .love-meter-track { left: 5%; right: 5%; top: 27%; bottom: 27%; }
+
+	.carddeck-app .love-meter { bottom: 10%; }
+	
+	.carddeck-app .love-meter-heart {
+		width: 28px;
+		height: 28px;
+	}
+	
+	.carddeck-app .love-meter-label {
+		font-size: 16px;
+	}
+}
+
+/* Responsive Volume Control */
+@media (max-width: 768px) {
+	.carddeck-app .volume-control {
+		width: 260px;
+		left: 5px;
+		top: 50px;
+	}
+	
+	.carddeck-app .volume-toggle {
+		left: 5px;
+		width: 36px;
+		height: 36px;
+		font-size: 16px;
+	}
+}
+
+@media (max-width: 480px) {
+	.carddeck-app .volume-control {
+		width: calc(100vw - 20px);
+		left: 10px;
+		right: 10px;
+	}
+	
+	.carddeck-app .volume-slider-container {
+		gap: 8px;
+	}
+	
+	.carddeck-app .volume-mute-btn {
+		width: 32px;
+		height: 32px;
+		font-size: 14px;
 	}
 }
 

@@ -10,7 +10,7 @@
 			@guest="continueAsGuest"
 		/>
 
-		<div v-else class="badge-level">
+		<div v-else-if="isDisplayBadgeLevel" class="badge-level">
 			<div
 				v-for="lvl in levels"
 				:key="lvl"
@@ -56,7 +56,7 @@
 		<div class="stacks">
 			<!-- Deck with opened and unopened cards -->
 			<div class="stack coverflow-container">
-				<div class="stack-info">
+				<div class="stack-info" style="display: none;">
 					<span>Deck</span>
 					<span class="count">({{ remaining }})</span>
 					<!-- Debug info -->
@@ -90,7 +90,7 @@
 						<div class="face back" :style="backStyle(card)"></div>
 						<div class="face front" :style="frontStyle(card)">
 							<img v-if="card.image" class="front-img" :src="card.image" alt="card" />
-							<span v-if="!card.opened" class="front-label">{{ card.label }}</span>
+							<!-- <span v-if="!card.opened" class="front-label">{{ card.label }}</span> -->
 						</div>
 					</div>
 				</div>
@@ -138,9 +138,53 @@
 					<option :value="4">4</option>
 				</select>
 			</label> -->
-			<button @click="shuffleUnopened" :disabled="isShuffling || remaining === 0">
-				{{ isShuffling ? 'Shuffling...' : 'Shuffle Card' }}
+			<button @click="shuffleUnopened" :disabled="isShuffling || remaining === 0" class="play-button">
+				<span v-if="isShuffling">Shuffling...</span>
 			</button>
+		</div>
+
+		<!-- Love Meter -->
+		<div class="love-meter">
+			<div class="love-meter-container">
+				<!-- <img class="love-meter-bg" src="../assets/love-meter-icon-container-2.png" alt="Love Meter" /> -->
+				<div class="love-meter-track">
+					<div class="love-meter-fill" :style="{ width: loveMeterPercentage + '%' }">
+						<div class="love-meter-fill-bg"></div>
+					</div>
+					<img class="love-meter-heart" src="../assets/love-meter-icon-love.png" alt="Love" :style="{ left: loveHeartLeft + '%' }" />
+				</div>
+			</div>
+		</div>
+
+		<!-- Volume Control -->
+		<div class="volume-control" :class="{ 'show': showVolumeControl }">
+			<div class="volume-panel">
+				<div class="volume-header">
+					<span class="volume-title">Volume</span>
+					<button class="volume-close" @click="showVolumeControl = false">×</button>
+				</div>
+				<div class="volume-slider-container">
+					<button class="volume-mute-btn" @click="toggleMute" :class="{ 'muted': isMuted }">
+						{{ isMuted ? '🔇' : '🔊' }}
+					</button>
+					<input 
+						type="range" 
+						min="0" 
+						max="1" 
+						step="0.1" 
+						v-model="volume" 
+						@input="updateVolume"
+						class="volume-slider"
+						:disabled="isMuted"
+					/>
+					<span class="volume-value">{{ Math.round(volume * 100) }}%</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Volume Toggle Button -->
+		<div class="volume-toggle" @click="showVolumeControl = !showVolumeControl">
+			{{ isMuted ? '🔇' : '🔊' }}
 		</div>
 
 		<!-- User bar -->
@@ -162,6 +206,7 @@ export default {
 		return {
 			unopened: [],
 			isOpening: false,
+			isDisplayBadgeLevel: false,
 			flipDurationMs: 520,
 			currentLevel: 1,
 			showLevelUp: false,
@@ -172,6 +217,10 @@ export default {
 			audioLevelWin: null,
 			audioBgm: null,
 			currentBgmKey: null,
+			// --- Volume Control ---
+			volume: 0.5,
+			isMuted: false,
+			showVolumeControl: false,
 			// --- Auth ---
 			user: null,
 			isGuest: false,
@@ -191,27 +240,33 @@ export default {
 			dragStartX: 0,
 			swipeThreshold: 50,
 			// --- Shuffle animation ---
-			isShuffling: false
+			isShuffling: false,
+			// --- Love Meter ---
+			loveMeterLevel: 0
 		};
 	},
 	computed: {
 		remaining() { return this.unopened.filter(card => !card.opened).length; },
+		loveMeterPercentage() {
+			// Calculate love meter based on opened cards in current level
+			const totalCards = this.unopened.length;
+			const openedCards = this.unopened.filter(card => card.opened).length;
+			return totalCards > 0 ? Math.round((openedCards / totalCards) * 100) : 0;
+		},
+		loveHeartLeft() {
+			// Clamp to keep the heart fully inside the track (2% padding each side)
+			const p = this.loveMeterPercentage;
+			return Math.max(2, Math.min(98, p));
+		},
 		levels() { return [1,2,3,4]; },
 		appBackgroundStyle() {
 			const style = { minHeight: '100vh' };
-			const map = {
-				1: require('../assets/background/background-warm.png'),
-				2: require('../assets/background/background-hot.png'),
-				3: require('../assets/background/background-wild.png'),
-				4: require('../assets/background/background-taboo.png')
-			};
-			const img = map[this.currentLevel];
-			if (img) {
-				style.backgroundImage = `url(${img})`;
-				style.backgroundSize = 'cover';
-				style.backgroundPosition = 'center';
-				style.backgroundRepeat = 'no-repeat';
-			}
+			// Use the same background image for all levels
+			const img = require('../assets/background/background-main-2.png');
+			style.backgroundImage = `url(${img})`;
+			style.backgroundSize = 'cover';
+			style.backgroundPosition = 'center';
+			style.backgroundRepeat = 'no-repeat';
 			return style;
 		},
 		visibleCards() {
@@ -305,17 +360,17 @@ export default {
 			// Always 3 cards layout: idx 0 = left, 1 = center, 2 = right
 			const positions = {
 				0: { // Left card
-					transform: `translate(-50%, -50%) translateX(-${translate}px) translateZ(-${translateZ}px) rotateY(-${rotate}deg) scale(0.8)`,
+					transform: `translate(-50%, -50%) translateX(-${translate}px) translateZ(-${translateZ}px) rotateY(-${rotate}deg) scale(0.5)`,
 					opacity: 0.7,
 					zIndex: 1
 				},
 				1: { // Center card
-					transform: 'translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(1)',
+					transform: 'translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(1.35)',
 					opacity: 1,
 					zIndex: 3
 				},
 				2: { // Right card
-					transform: `translate(-50%, -50%) translateX(${translate}px) translateZ(-${translateZ}px) rotateY(${rotate}deg) scale(0.8)`,
+					transform: `translate(-50%, -50%) translateX(${translate}px) translateZ(-${translateZ}px) rotateY(${rotate}deg) scale(0.5)`,
 					opacity: 0.7,
 					zIndex: 1
 				}
@@ -366,6 +421,12 @@ export default {
 						// Set the clicked card as center first
 						this.centerIndex = actualIndex;
 						console.log('Center index set to:', this.centerIndex);
+						
+						// Update BGM for level 1 if needed
+						if (this.currentLevel === 1) {
+							this.loadDynamicBgmForLevel1();
+						}
+						
 						// Then open it
 						this.openNext();
 					} else {
@@ -438,6 +499,11 @@ export default {
 				this.centerIndex--;
 			}
 			
+			// Update BGM for level 1 if needed
+			if (this.currentLevel === 1) {
+				this.loadDynamicBgmForLevel1();
+			}
+			
 			console.log('Previous card - centerIndex:', this.centerIndex, 'total cards:', this.unopened.length);
 		},
 		nextCard() {
@@ -452,6 +518,11 @@ export default {
 				this.centerIndex = 0;
 			} else {
 				this.centerIndex++;
+			}
+			
+			// Update BGM for level 1 if needed
+			if (this.currentLevel === 1) {
+				this.loadDynamicBgmForLevel1();
 			}
 			
 			console.log('Next card - centerIndex:', this.centerIndex, 'total cards:', this.unopened.length);
@@ -655,6 +726,13 @@ export default {
 			this.centerIndex = 0; // Reset coverflow to first card
 			this.loadBgmForLevel(level);
 			
+			// For level 1, ensure BGM is loaded after a short delay
+			if (level === 1) {
+				setTimeout(() => {
+					this.loadDynamicBgmForLevel1();
+				}, 100);
+			}
+			
 			// Debug: log to console to check if deck is loaded
 			console.log('Deck loaded:', {
 				level,
@@ -728,7 +806,13 @@ export default {
 			}
 		},
 		loadBgmForLevel(level) {
-			// Try to find a bgm file inside assets/bgm matching the level
+			// For level 1, use dynamic BGM based on card position
+			if (level === 1) {
+				this.loadDynamicBgmForLevel1();
+				return;
+			}
+			
+			// For other levels, use the original logic
 			let bgmSrc = null;
 			try {
 				const ctx = require.context('../assets/bgm', false, /\.(mp3|ogg|wav)$/);
@@ -766,7 +850,7 @@ export default {
 				try {
 					const audio = new Audio(bgmSrc);
 					audio.loop = true;
-					audio.volume = 0.5;
+					audio.volume = this.isMuted ? 0 : this.volume;
 					const maybe = audio.play();
 					if (maybe && typeof maybe.catch === 'function') { maybe.catch((err) => { if (process.env.NODE_ENV !== 'production') { /* eslint-disable-next-line no-console */ console.debug('bgm play blocked', err); } }); }
 					this.audioBgm = audio;
@@ -778,6 +862,120 @@ export default {
 					}
 				}
 			}
+		},
+		loadDynamicBgmForLevel1() {
+			// Get the current card index (0-based)
+			const currentCardIndex = this.centerIndex;
+			const cardNumber = currentCardIndex + 1; // Convert to 1-based
+			
+			let bgmFile = '';
+			if (cardNumber >= 1 && cardNumber <= 13) {
+				bgmFile = 'bgm-1-1.wav';
+			} else if (cardNumber >= 14 && cardNumber <= 20) {
+				bgmFile = 'bgm-1-2.wav';
+			} else if (cardNumber >= 21 && cardNumber <= 25) {
+				bgmFile = 'bgm-1-3.wav';
+			} else {
+				// Fallback to first BGM
+				bgmFile = 'bgm-1-1.wav';
+			}
+			
+			console.log(`Card ${cardNumber}: Should play ${bgmFile}`);
+			
+			try {
+				// Use require.context to get the BGM file
+				const ctx = require.context('../assets/bgm', false, /\.(mp3|ogg|wav)$/);
+				const keys = ctx.keys();
+				const bgmKey = `./${bgmFile}`;
+				
+				if (keys.includes(bgmKey)) {
+					const bgmSrc = ctx(bgmKey);
+					const bgmUrl = bgmSrc && bgmSrc.default ? bgmSrc.default : bgmSrc;
+					
+					console.log(`Found BGM file: ${bgmFile}, URL:`, bgmUrl);
+					
+					// Only change BGM if it's different from current to prevent restart
+					if (bgmUrl !== this.currentBgmKey) {
+						this.stopBgm();
+					const audio = new Audio(bgmUrl);
+					audio.loop = true;
+					audio.volume = this.isMuted ? 0 : this.volume;
+						const maybe = audio.play();
+						if (maybe && typeof maybe.catch === 'function') {
+							maybe.catch((err) => {
+								if (process.env.NODE_ENV !== 'production') {
+									// eslint-disable-next-line no-console
+									console.debug('dynamic bgm play blocked', err);
+								}
+							});
+						}
+						this.audioBgm = audio;
+						this.currentBgmKey = bgmUrl;
+						
+						console.log(`✅ Playing ${bgmFile} for card ${cardNumber}`);
+					} else {
+						console.log(`🎵 BGM already playing: ${bgmFile} for card ${cardNumber} - no restart needed`);
+					}
+				} else {
+					console.error(`❌ BGM file not found: ${bgmFile}`);
+					console.log('Available files:', keys);
+				}
+			} catch (e) {
+				console.error('❌ Dynamic BGM load failed:', e);
+			}
+		},
+		// Test method to manually switch BGM ranges (for debugging)
+		testBgmRanges() {
+			if (this.currentLevel === 1) {
+				console.log('Testing BGM ranges for Level 1:');
+				console.log('Current centerIndex:', this.centerIndex);
+				console.log('Current card number:', this.centerIndex + 1);
+				this.loadDynamicBgmForLevel1();
+			}
+		},
+		// --- Volume Control Methods ---
+		updateVolume() {
+			// Update BGM volume
+			if (this.audioBgm) {
+				this.audioBgm.volume = this.isMuted ? 0 : this.volume;
+			}
+			
+			// Update other audio elements
+			const audioElements = [
+				this.audioOpenCard,
+				this.audioLevelUp,
+				this.audioLevelWin,
+				this.audioSwipe
+			];
+			
+			audioElements.forEach(audio => {
+				if (audio) {
+					audio.volume = this.isMuted ? 0 : this.volume;
+				}
+			});
+			
+			// Save volume to localStorage
+			localStorage.setItem('gameVolume', this.volume.toString());
+			localStorage.setItem('gameMuted', this.isMuted.toString());
+		},
+		toggleMute() {
+			this.isMuted = !this.isMuted;
+			this.updateVolume();
+		},
+		loadVolumeSettings() {
+			// Load volume settings from localStorage
+			const savedVolume = localStorage.getItem('gameVolume');
+			const savedMuted = localStorage.getItem('gameMuted');
+			
+			if (savedVolume !== null) {
+				this.volume = parseFloat(savedVolume);
+			}
+			if (savedMuted !== null) {
+				this.isMuted = savedMuted === 'true';
+			}
+			
+			// Apply settings
+			this.updateVolume();
 		},
 		badgeClass(level) {
 			return {
@@ -874,6 +1072,12 @@ export default {
 			// Reset shuffling state and auto-open the center card
 			setTimeout(() => {
 				this.isShuffling = false;
+				
+				// Update BGM for level 1 if needed (same as card navigation)
+				if (this.currentLevel === 1) {
+					this.loadDynamicBgmForLevel1();
+				}
+				
 				if (unopenedCards.length > 0) {
 					this.openNext();
 				}
@@ -937,6 +1141,7 @@ export default {
 	mounted() {
 		this.loadLevel(this.currentLevel);
 		this.loadAuth();
+		this.loadVolumeSettings();
 		// If neither user nor guest, show auth page
 		this.showAuthPage = !(this.user || this.isGuest);
 		
