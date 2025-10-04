@@ -52,6 +52,37 @@
 			</div>
 		</div>
 
+		<!-- Level 1 Popup Message -->
+		<div v-if="showLevel1Popup" class="level1-popup-overlay">
+			<div class="level1-popup-content">
+				<div class="level1-message-container">
+					<img class="level1-message-image" src="../assets/message-level-1-10x.png" alt="Level 1 Message" />
+					<div class="level1-dialog-buttons-overlay">
+						<button class="dialog-btn dialog-yes" @click="handleLevel1Yes">
+							<img src="../assets/icon-dialog-yes.png" alt="Yes" />
+						</button>
+						<button class="dialog-btn dialog-no" @click="handleLevel1No">
+							<img src="../assets/icon-dialog-no.png" alt="No" />
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Level 1 End Popup Message -->
+		<div v-if="showLevel1EndPopup" class="level1-popup-overlay">
+			<div class="level1-popup-content">
+				<div class="level1-message-container">
+					<img class="level1-message-image" src="../assets/message-level-1-end.png" alt="Level 1 End Message" />
+					<div class="level1-dialog-buttons-overlay">
+						<button class="dialog-btn dialog-yes" @click="handleLevel1EndYes">
+							<img src="../assets/icon-dialog-yes.png" alt="Yes" />
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<!-- Single deck with carousel -->
 		<div class="stacks">
 			<!-- Deck with opened and unopened cards -->
@@ -63,14 +94,8 @@
 					<span style="font-size: 12px; color: #888;">[Debug: {{ unopened.length }} cards, visible: {{ visibleCards.length }}]</span>
 				</div>
 				<div class="carousel-area" 
-					:class="{ dragging: isDragging, shuffling: isShuffling, opening: isOpening }"
-					@click="handleCarouselClick"
-					@touchstart="handleTouchStart"
-					@touchend="handleTouchEnd"
-					@mousedown="handleMouseDown"
-					@mouseup="handleMouseUp"
-					@mouseleave="isDragging = false"
-					:style="{ cursor: isDragging ? 'grabbing' : 'grab' }"
+					:class="{ dragging: isDragging, shuffling: isShuffling, spinning: isSpinning, opening: isOpening }"
+					:style="{ cursor: 'default' }"
 				>
 					<div class="carousel-track" :style="carouselTrackStyle">
 						<div
@@ -81,10 +106,11 @@
 								opened: card.opened,
 								'is-center': isCenterCard(idx),
 								'is-left': isLeftCard(idx),
-								'is-right': isRightCard(idx)
+								'is-right': isRightCard(idx),
+								'final-reveal': showFinalReveal && isCenterCard(idx)
 							}"
 							:style="carouselCardStyle(idx)"
-							@click.stop="isCenterCard(idx) && !card.opened ? openCard(idx) : null"
+							@click.stop="null"
 							@mouseenter="isCenterCard(idx) ? null : showNonClickableFeedback()"
 					>
 						<div class="face back" :style="backStyle(card)"></div>
@@ -241,8 +267,13 @@ export default {
 			swipeThreshold: 50,
 			// --- Shuffle animation ---
 			isShuffling: false,
+			isSpinning: false,
+			showFinalReveal: false,
 			// --- Love Meter ---
-			loveMeterLevel: 0
+			loveMeterLevel: 0,
+			// --- Level 1 Popup ---
+			showLevel1Popup: false,
+			showLevel1EndPopup: false
 		};
 	},
 	computed: {
@@ -293,36 +324,65 @@ export default {
 				allCards: allCards.length,
 				centerIndex: this.centerIndex,
 				validCenterIndex: validCenterIndex,
-				remaining: this.remaining
+				remaining: this.remaining,
+				isSpinning: this.isSpinning
 			});
 			
-			// Always show 3 cards with infinite loop
-			for (let i = -1; i <= 1; i++) {
-				let index = validCenterIndex + i;
-				
-				// Handle infinite loop for left card
-				if (index < 0) {
-					index = allCards.length - 1;
+			if (this.isSpinning) {
+				// During sliding, show only 3 cards: left, center, right
+				const cardRange = 1;
+				for (let i = -cardRange; i <= cardRange; i++) {
+					let index = validCenterIndex + i;
+					if (index < 0) { index = allCards.length + index; }
+					else if (index >= allCards.length) { index = index - allCards.length; }
+					const card = {
+						...allCards[index],
+						originalIndex: index,
+						position: i // Position in the slide (-1, 0, 1)
+					};
+					cards.push(card);
 				}
-				// Handle infinite loop for right card
-				else if (index >= allCards.length) {
-					index = 0;
-				}
+			} else {
+				// Normal mode: show 3 cards with center focus
+				const cardRange = 1; // Show 3 cards normally
 				
-				const card = {
-					...allCards[index],
-					originalIndex: index,
-					position: i // -1 = left, 0 = center, 1 = right
-				};
-				cards.push(card);
+				for (let i = -cardRange; i <= cardRange; i++) {
+					let index = validCenterIndex + i;
+					
+					// Handle infinite loop for left cards
+					if (index < 0) {
+						index = allCards.length + index;
+					}
+					// Handle infinite loop for right cards
+					else if (index >= allCards.length) {
+						index = index - allCards.length;
+					}
+					
+					const card = {
+						...allCards[index],
+						originalIndex: index,
+						position: i // -1 = left, 0 = center, 1 = right
+					};
+					cards.push(card);
+				}
 			}
 			
-			console.log('Infinite 3 cards:', cards);
+			console.log('Visible cards:', cards.length, 'isSpinning:', this.isSpinning);
 			return cards;
 		},
 		carouselTrackStyle() {
-			// No translation needed since we're only showing 3 cards
-			return {};
+			if (this.isSpinning) {
+				// During sliding, no track translation needed since we show only 3 cards
+				// The sliding effect is handled by changing which 3 cards are visible
+				// Keep the centering transform from CSS
+				return {
+					transform: 'translateX(-50%)'
+				};
+			}
+			// Normal mode: maintain centering
+			return {
+				transform: 'translateX(-50%)'
+			};
 		}
 	},
 	watch: {
@@ -345,62 +405,93 @@ export default {
 			const getResponsiveValues = () => {
 				const width = window.innerWidth || 1024; // fallback for SSR
 				if (width <= 599) {
-					return { translate: 140, rotate: 25, translateZ: 50 };
+					return { cardWidth: 140, cardSpacing: 50 };
 				} else if (width <= 1023) {
-					return { translate: 160, rotate: 28, translateZ: 60 };
+					return { cardWidth: 160, cardSpacing: 60 };
 				} else {
-					return { translate: 200, rotate: 30, translateZ: 80 };
+					return { cardWidth: 200, cardSpacing: 80 };
 				}
 			};
 			
-			const { translate, rotate, translateZ } = getResponsiveValues();
+			const { cardWidth } = getResponsiveValues();
 			
-			console.log('Card style for idx:', idx, 'infinite carousel');
+			console.log('Card style for idx:', idx, 'isSpinning:', this.isSpinning);
 			
 			// Detect if this visible card is opened to slightly enlarge the center when opened
 			const visibleCard = (this.visibleCards && this.visibleCards[idx]) ? this.visibleCards[idx] : null;
 			const isOpened = !!(visibleCard && visibleCard.opened);
 			
-			// Always 3 cards layout: idx 0 = left, 1 = center, 2 = right
-			const positions = {
-				0: { // Left card
-					transform: `translate(-50%, -50%) translateX(-${translate}px) translateZ(-${translateZ}px) rotateY(-${rotate}deg) scale(0.4)`,
-					opacity: 0.7,
-					zIndex: 1
-				},
-				1: { // Center card
-					transform: `translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(${isOpened ? 2.0 : 1.8})`,
-					opacity: 1,
-					zIndex: 3
-				},
-				2: { // Right card
-					transform: `translate(-50%, -50%) translateX(${translate}px) translateZ(-${translateZ}px) rotateY(${rotate}deg) scale(0.4)`,
-					opacity: 0.7,
-					zIndex: 1
+			if (this.isSpinning) {
+				// During sliding, arrange 3 cards with center card very large, side cards small
+				const positions = {
+					0: { translate: -cardWidth, scale: 0.5, opacity: 0.6, zIndex: 5 }, // Left card - small
+					1: { translate: 0, scale: 1.8, opacity: 1, zIndex: 15 }, // Center card - very large
+					2: { translate: cardWidth, scale: 0.5, opacity: 0.6, zIndex: 5 } // Right card - small
+				};
+				
+				const position = positions[idx];
+				if (!position) {
+					return { transform: 'translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(0.4)', opacity: 0, zIndex: 0 };
 				}
-			};
-			
-			const style = positions[idx] || {
-				transform: 'translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(0.4)',
-				opacity: 0,
-				zIndex: 0
-			};
-			
-			console.log('Infinite carousel style for idx', idx, ':', style);
-			return style;
+				
+				return {
+					transform: `translate(-50%, -50%) translateX(${position.translate}px) translateZ(0px) rotateY(0deg) scale(${position.scale})`,
+					opacity: position.opacity,
+					zIndex: position.zIndex,
+					transition: 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.5s ease'
+				};
+			} else {
+				// Normal 3-card layout
+				const getNormalValues = () => {
+					const width = window.innerWidth || 1024;
+					if (width <= 599) {
+						return { translate: 140, rotate: 25, translateZ: 50 };
+					} else if (width <= 1023) {
+						return { translate: 160, rotate: 28, translateZ: 60 };
+					} else {
+						return { translate: 200, rotate: 30, translateZ: 80 };
+					}
+				};
+				
+				const { translate, rotate, translateZ } = getNormalValues();
+				
+				const positions = {
+					0: { // Left card
+						transform: `translate(-50%, -50%) translateX(-${translate}px) translateZ(-${translateZ}px) rotateY(-${rotate}deg) scale(0.4)`,
+						opacity: 0.7,
+						zIndex: 1
+					},
+					1: { // Center card
+						transform: `translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(${isOpened ? 2.2 : 2.0})`,
+						opacity: 1,
+						zIndex: 3
+					},
+					2: { // Right card
+						transform: `translate(-50%, -50%) translateX(${translate}px) translateZ(-${translateZ}px) rotateY(${rotate}deg) scale(0.4)`,
+						opacity: 0.7,
+						zIndex: 1
+					}
+				};
+				
+				return positions[idx] || {
+					transform: 'translate(-50%, -50%) translateX(0px) translateZ(0px) rotateY(0deg) scale(0.4)',
+					opacity: 0,
+					zIndex: 0
+				};
+			}
 		},
 		isCenterCard(idx) {
-			// Always 3 cards: idx 0 = left, idx 1 = center, idx 2 = right
+			// Both sliding and normal mode: center card is always at index 1
 			const isCenter = idx === 1;
-			console.log('isCenterCard:', { idx, isCenter });
+			console.log('isCenterCard:', { idx, isCenter, isSpinning: this.isSpinning });
 			return isCenter;
 		},
 		isLeftCard(idx) {
-			// Always 3 cards: idx 0 = left, idx 1 = center, idx 2 = right
+			// Both sliding and normal mode: left card is at index 0
 			return idx === 0;
 		},
 		isRightCard(idx) {
-			// Always 3 cards: idx 0 = left, idx 1 = center, idx 2 = right
+			// Both sliding and normal mode: right card is at index 2
 			return idx === 2;
 		},
 		selectCard(idx) {
@@ -488,6 +579,22 @@ export default {
 			// Visual feedback untuk kartu yang tidak bisa diklik
 			// Bisa ditambahkan toast message atau visual indicator
 			console.log('This card is not clickable. Only center card can be opened.');
+		},
+		handleLevel1Yes() {
+			// Close popup and advance to level 2
+			this.showLevel1Popup = false;
+			this.currentLevel = 2;
+			this.loadLevel(2);
+		},
+		handleLevel1No() {
+			// Close popup and continue playing level 1
+			this.showLevel1Popup = false;
+		},
+		handleLevel1EndYes() {
+			// Close popup and advance to level 2
+			this.showLevel1EndPopup = false;
+			this.currentLevel = 2;
+			this.loadLevel(2);
 		},
 		previousCard() {
 			if (this.unopened.length === 0) return;
@@ -1060,50 +1167,70 @@ export default {
 		shuffleUnopened() {
 			if (this.unopened.length === 0) return;
 			
-			// Set shuffling state for animation
+			// Set spinning state for animation
 			this.isShuffling = true;
+			this.isSpinning = true;
+			this.showFinalReveal = false;
 			
-			// Fisher-Yates shuffle algorithm - only shuffle unopened cards
+			// Get unopened cards for random selection
 			const unopenedCards = this.unopened.filter(card => !card.opened);
-			const openedCards = this.unopened.filter(card => card.opened);
 			
-			// Shuffle only unopened cards
-			for (let i = unopenedCards.length - 1; i > 0; i--) {
-				const j = Math.floor(Math.random() * (i + 1));
-				[unopenedCards[i], unopenedCards[j]] = [unopenedCards[j], unopenedCards[i]];
-			}
-			
-			// Combine shuffled unopened cards with opened cards
-			this.unopened = [...unopenedCards, ...openedCards];
-			
-			// Set random center index to an unopened card
-			if (unopenedCards.length > 0) {
-				const randomCenterIndex = Math.floor(Math.random() * unopenedCards.length);
-				this.centerIndex = randomCenterIndex;
-			} else {
-				this.centerIndex = 0;
-			}
-			
-			// Ensure centerIndex is valid
-			if (this.centerIndex < 0) {
-				this.centerIndex = 0;
-			}
-			
-			console.log('Shuffled deck, center card set to index:', this.centerIndex);
-			
-			// Reset shuffling state and auto-open the center card
-			setTimeout(() => {
+			// If no unopened cards, don't proceed
+			if (unopenedCards.length === 0) {
 				this.isShuffling = false;
+				this.isSpinning = false;
+				return;
+			}
+			
+			// Calculate spin parameters
+			const spinDuration = 3000; // 12 seconds for ultra-slow, very smooth sliding
+			const spinSpeed = 250; // milliseconds per card change for ultra-smooth movement
+			const totalSpins = Math.floor(spinDuration / spinSpeed);
+			
+			// Create array of unopened card indices for final selection
+			const unopenedIndices = this.unopened.map((card, index) => !card.opened ? index : -1).filter(idx => idx !== -1);
+			
+			// Create infinite spinning effect - cycle through ALL cards for visual effect
+			let spinCount = 0;
+			const spinInterval = setInterval(() => {
+				// Move to next card in circular fashion (all cards, including opened ones)
+				this.centerIndex = (this.centerIndex + 1) % this.unopened.length;
+				spinCount++;
 				
-				// Update BGM for level 1 if needed (same as card navigation)
-				if (this.currentLevel === 1) {
-					this.loadDynamicBgmForLevel1();
+				// Stop spinning after 3 seconds
+				if (spinCount >= totalSpins) {
+					clearInterval(spinInterval);
+					
+					// Set final random position to an UNOPENED card only
+					if (unopenedCards.length > 0 && unopenedIndices.length > 0) {
+						const randomUnopenedIndex = Math.floor(Math.random() * unopenedIndices.length);
+						this.centerIndex = unopenedIndices[randomUnopenedIndex];
+					}
+					
+					// Stop spinning animation and trigger final reveal
+					setTimeout(() => {
+						this.isShuffling = false;
+						this.isSpinning = false;
+						
+						// Add final reveal class to center card
+						this.showFinalReveal = true;
+						
+						// Update BGM for level 1 if needed
+						if (this.currentLevel === 1) {
+							this.loadDynamicBgmForLevel1();
+						}
+						
+						// Auto-open the selected card after reveal animation
+						setTimeout(() => {
+							if (unopenedCards.length > 0) {
+								this.openNext();
+							}
+						}, 1200); // Wait for final reveal fast animation to complete
+					}, 100);
 				}
-				
-				if (unopenedCards.length > 0) {
-					this.openNext();
-				}
-			}, 500); // Delay to show the shuffle animation
+			}, spinSpeed);
+			
+			console.log('Spinning started for', spinDuration, 'ms');
 		},
 		openNext() {
 			if (this.isOpening) return;
@@ -1134,6 +1261,18 @@ export default {
 				
 				// Check if there are any unopened cards left
 				const remainingUnopenedCards = this.unopened.filter(card => !card.opened);
+				
+				// Check if we need to show level 1 popup (10 cards opened)
+				if (this.currentLevel === 1) {
+					const openedCards = this.unopened.filter(card => card.opened).length;
+					if (openedCards === 10) {
+						this.showLevel1Popup = true;
+					}
+					// Check if we need to show level 1 end popup (25 cards opened OR all cards finished)
+					if (openedCards === 25 || remainingUnopenedCards.length === 0) {
+						this.showLevel1EndPopup = true;
+					}
+				}
 				
 				// Auto-advance when all cards are opened
 				if (remainingUnopenedCards.length === 0) {
