@@ -68,7 +68,7 @@ html, body {
 }
 .carddeck-app .badge-level { 
     display: flex; 
-    gap: 0; 
+    gap: -15px; 
     align-items: center; 
     justify-content: center; 
     margin: 0 auto; 
@@ -80,10 +80,21 @@ html, body {
     margin-top: 4vh;
     margin-bottom: 2vh;
 }
-.carddeck-app .badge-level .badge-item { flex: 1 1 33.333%; display: block; padding: 0; margin: 0; border-radius: 0; background: transparent; box-shadow: none; transition: transform .18s ease, filter .18s ease; backdrop-filter: none; height: 100%; }
-.carddeck-app .badge-level .badge-item img { width: 100%; height: 100%; display: block; margin: 0; padding: 0; border: 0; object-fit: cover; object-position: center center; }
+.carddeck-app .badge-level .badge-item { flex: 1 1 33.333%; display: flex; padding: 2px; margin: 0; border-radius: 0; background: transparent; box-shadow: none; transition: transform .18s ease, filter .18s ease; backdrop-filter: none; height: 100%; align-items: center; justify-content: center; }
+.carddeck-app .badge-level .badge-item img { max-width: 100%; max-height: 100%; width: auto; height: auto; display: block; margin: 0; padding: 0; border: 0; object-fit: contain; object-position: center center; }
 .carddeck-app .badge-level .badge-item.active { background: transparent; box-shadow: none; transform: translateY(-1px) scale(1.05); }
 .carddeck-app .badge-level .badge-item.passed { filter: grayscale(0.9) brightness(0.95); opacity: 0.85; }
+.carddeck-app .badge-level .badge-item.locked { 
+	filter: grayscale(0.7) brightness(0.8) contrast(0.9); 
+	opacity: 1; 
+	cursor: not-allowed; 
+	transform: scale(0.95); 
+}
+.carddeck-app .badge-level .badge-item.unlocked { 
+	filter: brightness(1.1) saturate(1.2); 
+	opacity: 1; 
+	transition: all 0.3s ease; 
+}
 .carddeck-app .badge-level .badge-item:not(.active):hover { transform: translateY(-1px); }
 
 .carddeck-app .stack {
@@ -91,6 +102,7 @@ html, body {
 	width: var(--card-w);
 	text-align: center;
 	cursor: pointer;
+	background-color: transparent;
 }
 
 .carddeck-app .stack-info { margin-bottom: 8px; color: #e5e7eb; text-shadow: 0 1px 2px rgba(0,0,0,.35); font-weight: 600; font-size: 15px; letter-spacing: .2px; }
@@ -256,7 +268,7 @@ html, body {
 
 /* Responsive: mobile-first */
 @media (max-width: 599px) {
-	.carddeck-app .badge-level { top: 40px; width: 100%; height: 56px; }
+	.carddeck-app .badge-level { top: 40px; width: 100%; height: 56px; gap: -10px; }
 	.carddeck-app { 
 		--card-w: 140px; 
 		--card-h: calc(var(--card-w) * 1.4); 
@@ -264,8 +276,8 @@ html, body {
 	.carddeck-app .stacks { width: 95vw; padding: 6px; gap: 8px; min-height: 35vh; margin-top: 12vh; margin-bottom: 8vh; }
 	.carddeck-app .carousel-area { height: calc(var(--card-h) + 80px); min-height: 180px; }
 	.carddeck-app .stack-info { font-size: 13px; }
-	.carddeck-app .badge-level .badge-item { width: 100%; height: 50px; padding: 10px;}
-	.carddeck-app .badge-level .badge-item img { width: 120px; height: 50px; }
+	.carddeck-app .badge-level .badge-item { width: 100%; height: 50px; padding: 2px; display: flex; align-items: center; justify-content: center; }
+	.carddeck-app .badge-level .badge-item img { max-width: 120px; max-height: 40px; width: auto; height: auto; object-fit: contain; }
 	.carddeck-app .controls { margin-top: 2vh; margin-bottom: 2vh; }
 }
 
@@ -277,8 +289,8 @@ html, body {
 	}
 	.carddeck-app .stacks { width: 85vw; gap: 10px; padding: 8px; min-height: 40vh; margin-top: 2vh; margin-bottom: 2vh; }
 	.carddeck-app .carousel-area { height: calc(var(--card-h) + 100px); min-height: 220px; }
-	.carddeck-app .badge-level .badge-item { width: 38px; height: 38px; }
-	.carddeck-app .badge-level .badge-item img { width: 24px; height: 24px; }
+	.carddeck-app .badge-level .badge-item { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
+	.carddeck-app .badge-level .badge-item img { max-width: 32px; max-height: 32px; width: auto; height: auto; object-fit: contain; }
 	.carddeck-app .controls { margin-top: 2vh; margin-bottom: 2vh; }
 }
 
@@ -290,8 +302,8 @@ html, body {
 	}
 	.carddeck-app .stacks { width: 80vw; max-width: 1200px; gap: 12px; padding: 8px; min-height: 40vh; margin-top: 2vh; margin-bottom: 2vh; }
 	.carddeck-app .carousel-area { height: calc(var(--card-h) + 120px); min-height: 240px; }
-	.carddeck-app .badge-level .badge-item { width: 44px; height: 44px; }
-	.carddeck-app .badge-level .badge-item img { width: 28px; height: 28px; }
+	.carddeck-app .badge-level .badge-item { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+	.carddeck-app .badge-level .badge-item img { max-width: 38px; max-height: 38px; width: auto; height: auto; object-fit: contain; }
 	.carddeck-app .controls { margin-top: 2vh; margin-bottom: 2vh; }
 }
 
@@ -312,6 +324,49 @@ html, body {
 
 /* Level Up Overlay */
 .carddeck-app .levelup-overlay { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,0.35); z-index: 2000; animation: fadeIn 250ms ease-out; }
+
+/* Mobile Responsive for Level Up Overlay */
+@media (max-width: 768px) {
+	.carddeck-app .levelup-content { 
+		padding: 15px 18px; 
+		gap: 8px; 
+	}
+	.carddeck-app .levelup-badge { 
+		width: 60px; 
+		height: 60px; 
+	}
+	.carddeck-app .levelup-text { 
+		font-size: 18px; 
+	}
+}
+
+@media (max-width: 480px) {
+	.carddeck-app .levelup-content { 
+		padding: 12px 15px; 
+		gap: 6px; 
+	}
+	.carddeck-app .levelup-badge { 
+		width: 50px; 
+		height: 50px; 
+	}
+	.carddeck-app .levelup-text { 
+		font-size: 16px; 
+	}
+}
+
+@media (max-width: 360px) {
+	.carddeck-app .levelup-content { 
+		padding: 10px 12px; 
+		gap: 5px; 
+	}
+	.carddeck-app .levelup-badge { 
+		width: 45px; 
+		height: 45px; 
+	}
+	.carddeck-app .levelup-text { 
+		font-size: 14px; 
+	}
+}
 
 /* Level 1 Popup Overlay - Darker background */
 .carddeck-app .level1-popup-overlay { 
@@ -383,6 +438,85 @@ html, body {
 	object-fit: contain; 
 }
 
+/* Mobile Responsive for Level 1 Popups */
+@media (max-width: 768px) {
+	.carddeck-app .level1-popup-content { 
+		padding: 20px; 
+		gap: 20px; 
+	}
+	.carddeck-app .level1-message-image { 
+		max-width: 90vw; 
+		max-height: 60vh; 
+		min-width: 300px;
+		min-height: 200px;
+	}
+	.carddeck-app .level1-dialog-buttons-overlay { 
+		bottom: 12%; 
+		gap: 30px; 
+	}
+	.carddeck-app .dialog-btn { 
+		padding: 6px; 
+	}
+	.carddeck-app .dialog-btn img { 
+		width: 70px; 
+		height: 70px; 
+		min-width: 50px;
+		min-height: 50px;
+	}
+}
+
+@media (max-width: 480px) {
+	.carddeck-app .level1-popup-content { 
+		padding: 15px; 
+		gap: 15px; 
+	}
+	.carddeck-app .level1-message-image { 
+		max-width: 95vw; 
+		max-height: 55vh; 
+		min-width: 280px;
+		min-height: 180px;
+	}
+	.carddeck-app .level1-dialog-buttons-overlay { 
+		bottom: 10%; 
+		gap: 25px; 
+	}
+	.carddeck-app .dialog-btn { 
+		padding: 4px; 
+	}
+	.carddeck-app .dialog-btn img { 
+		width: 60px; 
+		height: 60px; 
+		min-width: 45px;
+		min-height: 45px;
+	}
+}
+
+@media (max-width: 360px) {
+	.carddeck-app .level1-popup-content { 
+		padding: 10px; 
+		gap: 10px; 
+	}
+	.carddeck-app .level1-message-image { 
+		max-width: 98vw; 
+		max-height: 50vh; 
+		min-width: 250px;
+		min-height: 150px;
+	}
+	.carddeck-app .level1-dialog-buttons-overlay { 
+		bottom: 8%; 
+		gap: 20px; 
+	}
+	.carddeck-app .dialog-btn { 
+		padding: 3px; 
+	}
+	.carddeck-app .dialog-btn img { 
+		width: 50px; 
+		height: 50px; 
+		min-width: 40px;
+		min-height: 40px;
+	}
+}
+
 /* User bar */
 .carddeck-app .user-bar { 
     position: fixed; 
@@ -436,6 +570,7 @@ html, body {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	background-color: transparent;
 }
 
 .carddeck-app .carousel-area { 
@@ -470,6 +605,7 @@ html, body {
 	justify-content: center;
 	transform-style: preserve-3d;
 	background: transparent !important;
+	background-color: transparent !important;
 	margin: 0 auto;
 	left: 50%;
 	transform: translateX(-50%);
@@ -509,7 +645,7 @@ html, body {
 .carddeck-app .carousel-card.is-center:active {
 	transform: translate(-50%, -50%) translateZ(5px) scale(0.98) !important;
 	transition: transform 0.1s ease;
-	background-color: #ffffff00;
+	background-color: #ffffff00 !important;
 }
 
 .carddeck-app .carousel-card.is-left:active,
@@ -608,7 +744,7 @@ html, body {
 .carddeck-app .carousel-card.is-center {
 	opacity: 1;
 	filter: grayscale(0);
-	background-color: #ffffff00;
+	background-color: #ffffff00 !important;
 	/* Slightly larger faces for visual emphasis */
 }
 
@@ -626,7 +762,7 @@ html, body {
 .carddeck-app .carousel-area.spinning .carousel-card {
 	animation: 0.5s cubic-bezier(0.23, 1, 0.32, 1) infinite;
 	filter: brightness(1.2) saturate(1.4);
-	box-shadow: 0 0 40px rgba(255, 217, 0, 0), 0 20px 40px rgba(0,0,0,0.4);
+	box-shadow: 0 0 40px rgba(255, 217, 0, 0), 0 20px 40px rgba(0, 0, 0, 0);
 }
 
 /* Force all cards to close during spinning */
@@ -678,9 +814,9 @@ html, body {
 }
 
 .carddeck-app .carousel-area.spinning {
-	background: radial-gradient(circle at center, rgba(255, 217, 0, 0) 0%, rgba(255, 165, 0, 0.1) 50%, transparent 80%) !important;
+	background: radial-gradient(circle at center, rgba(255, 217, 0, 0) 0%, rgba(255, 166, 0, 0) 50%, transparent 80%) !important;
 	backdrop-filter: blur(3px);
-	box-shadow: inset 0 0 100px rgba(255, 215, 0, 0.1);
+	box-shadow: inset 0 0 100px rgba(255, 217, 0, 0);
 }
 
 .carddeck-app .carousel-card.final-reveal {
@@ -774,10 +910,10 @@ html, body {
 .carddeck-app .carousel-area:active { background: transparent !important; }
 
 .carddeck-app .carousel-card.is-center:hover {
-	box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+	box-shadow: 0 12px 28px rgba(0, 0, 0, 0);
 	transform: translate(-50%, -50%) translateZ(10px) scale(1.02) !important;
 	cursor: default !important;
-	background-color: #ffffff00;
+	background-color: #ffffff00 !important;
 }
 
 .carddeck-app .carousel-card.is-left:hover,
@@ -789,12 +925,12 @@ html, body {
 .carddeck-app .carousel-card.is-center {
 	z-index: 100;
 	box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-	background-color: #ffffff00;
+	background-color: #ffffff00 !important;
 }
 
 .carddeck-app .carousel-card.is-center:hover {
 	box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-	background-color: #ffffff00;
+	background-color: #ffffff00 !important;
 }
 
 .carddeck-app .carousel-card.is-left,
@@ -862,7 +998,7 @@ html, body {
 }
 
 @media (min-width: 600px) and (max-width: 1023px) {
-	.carddeck-app .badge-level { top: 15vh; width: 90vw; height: 60px; }
+	.carddeck-app .badge-level { top: 15vh; width: 90vw; height: 60px; gap: -12px; }
 	.carddeck-app .carousel-card.is-left:hover {
 		transform: translateX(-160px) translateZ(-60px) rotateY(-28deg) scale(0.85) !important;
 	}
@@ -873,7 +1009,7 @@ html, body {
 }
 
 @media (min-width: 1024px) {
-	.carddeck-app .badge-level { top: 16vh; width: min(80vw, 1000px); height: 64px; }
+	.carddeck-app .badge-level { top: 16vh; width: min(80vw, 1000px); height: 64px; gap: -15px; }
 	.carddeck-app .carousel-card.is-left:hover {
 		transform: translateX(-200px) translateZ(-80px) rotateY(-30deg) scale(0.85) !important;
 	}

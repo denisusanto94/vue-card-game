@@ -900,7 +900,42 @@ export default {
 			this.loadLevel(this.currentLevel);
 		},
 		levelBadgeSrc(level) {
-			// Prefer PNG badges; gracefully fall back to SVG/JPG if PNG is not available
+			// Special handling for level 2 and 3 - show locked/unlocked state
+			if (level === 2) {
+				// Check if level 2 is unlocked (currentLevel >= 2)
+				const isUnlocked = this.currentLevel >= 2;
+				const badgeType = isUnlocked ? 'unlock' : 'lock';
+				
+				try {
+					return require(`../assets/level-badge/level-2-${badgeType}.png`);
+				} catch (e) {
+					// Fallback to original level-2 badge if lock/unlock variants don't exist
+					try {
+						return require('../assets/level-badge/level-2.png');
+					} catch (_) {
+						return require('../assets/level-badge/level-1.png');
+					}
+				}
+			}
+			
+			if (level === 3) {
+				// Check if level 3 is unlocked (currentLevel >= 3)
+				const isUnlocked = this.currentLevel >= 3;
+				const badgeType = isUnlocked ? 'unlock' : 'lock';
+				
+				try {
+					return require(`../assets/level-badge/level-3-${badgeType}.png`);
+				} catch (e) {
+					// Fallback to original level-3 badge if lock/unlock variants don't exist
+					try {
+						return require('../assets/level-badge/level-3.png');
+					} catch (_) {
+						return require('../assets/level-badge/level-1.png');
+					}
+				}
+			}
+			
+			// For other levels, use original logic
 			try {
 				const ctx = require.context('../assets/level-badge', false, /\.(png|svg|jpe?g)$/);
 				const keys = ctx.keys();
@@ -1109,7 +1144,9 @@ export default {
 		badgeClass(level) {
 			return {
 				active: this.currentLevel === level,
-				passed: this.currentLevel > level
+				passed: this.currentLevel > level,
+				locked: (level === 2 && this.currentLevel < 2) || (level === 3 && this.currentLevel < 3),
+				unlocked: (level === 2 && this.currentLevel >= 2) || (level === 3 && this.currentLevel >= 3)
 			};
 		},
 		onLevelChange() {
